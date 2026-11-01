@@ -16,19 +16,18 @@ export function WorksheetPaper({ ws }: { ws: Worksheet }) {
   return (
     <article className="worksheet mx-auto bg-white text-black">
       <header className="relative text-center">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <div className="mb-3 flex justify-center"><Wordmark size={28} /></div>
         <p className="pt-1 text-lg font-bold tracking-wide">GRADE VI · KANNADA 3rd LANGUAGE</p>
         <p className="kn mt-1 text-xl font-bold">{ws.title.kn}</p>
         <p className="text-sm">{ws.title.en}</p>
         <div className="mt-4 flex justify-between text-sm font-bold">
-          <span>NAME: ______________________</span>
-          <span>DATE: ____________</span>
-          <span className="text-right">
-            Duration: {ws.minutes === 60 ? "1 hour" : `${ws.minutes} minutes`}
-            <br />
-            Max. Marks: {fmt(ws.totalMarks)}
-          </span>
+          <span>Duration: {ws.minutes === 60 ? "1 hour" : `${ws.minutes} minutes`}</span>
+          <span>Max. Marks: {fmt(ws.totalMarks)}</span>
+        </div>
+        {/* A line of its own, with long, tall writing lines, so a child can write their name and date clearly. */}
+        <div className="mt-7 flex items-end gap-8 text-left text-sm font-bold">
+          <span className="flex flex-[3] items-end gap-2">NAME:<span className="h-9 flex-1 border-b border-black" /></span>
+          <span className="flex flex-[1.3] items-end gap-2">DATE:<span className="h-9 flex-1 border-b border-black" /></span>
         </div>
       </header>
       <hr className="my-4 border-black" />
