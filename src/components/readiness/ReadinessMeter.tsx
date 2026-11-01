@@ -12,8 +12,6 @@ const CHEER: Record<LevelId, string> = {
   ready: "You're exam ready! Keep practising so it stays fresh.",
 };
 
-const readyMarks = Math.ceil(EXAM_MARKS * 0.8);
-
 export function countdown(r: Readiness) {
   if (r.daysToGo === null) return null;
   if (r.daysToGo > 1) return `Exam in ${r.daysToGo} days`;
@@ -33,32 +31,47 @@ export function ReadinessMeter({ r, audience, nickname }: { r: Readiness; audien
         <h2 className="text-lg font-bold">Exam readiness</h2>
         {when && <span className="rounded-full bg-black px-3 py-1 text-sm font-medium text-[var(--brand-yellow)]">{when}</span>}
       </div>
-      <p className="text-sm text-muted">{chapters}{child ? "" : r.exam.date ? "" : " · no exam date set yet"}</p>
+      <p className="text-sm text-muted">{chapters || "Exam chapters not chosen yet"}{child || !chapters ? "" : r.exam.date ? "" : " · no exam date set yet"}</p>
 
       <div className="mt-4 grid items-center gap-6 md:grid-cols-[18rem_1fr]">
         <div className="flex flex-col items-center">
           <ReadinessDial pct={r.pct} level={r.level} active={r.enoughEvidence} />
-          <p className="-mt-1 text-lg font-bold" style={r.enoughEvidence ? { color: LEVEL_COLORS[r.level].text } : undefined}>{r.enoughEvidence ? levelLabel(r.level) : "Not enough practice yet"}</p>
+          <p className="-mt-1 text-lg font-bold" style={r.enoughEvidence ? { color: LEVEL_COLORS[r.level].text } : undefined}>{r.enoughEvidence ? levelLabel(r.level) : r.missing === "chapters" ? "Exam chapters needed" : "No recent practice paper"}</p>
           {r.enoughEvidence && <p className="text-sm text-muted">Likely {r.low}–{r.high} out of {EXAM_MARKS}</p>}
         </div>
 
         <div className="flex flex-col gap-3">
-          {child && <ReadinessSetup r={r} />}
           {!r.enoughEvidence ? (
-            child ? null : (
-            <p className="rounded-2xl bg-accent-soft p-4">
-              {child ? "Finish one practice test to see how ready you are." : `${nickname} needs a few more written answers before the meter can make a fair estimate. Usually one full practice test is enough.`}{" "}
-              <Link href="/learn/tests" className="font-bold underline">{child ? "Start a practice test →" : "Practice tests →"}</Link>
-            </p>
+            child ? (
+              <ReadinessSetup r={r} />
+            ) : (
+              <p className="rounded-2xl bg-accent-soft p-4">
+                {r.missing === "chapters" ? (
+                  <>Choose the chapters in {nickname}&apos;s exam below to see readiness.</>
+                ) : (
+                  <>
+                    Readiness shows once {nickname} writes a practice paper on these chapters (it counts papers from the last 2 weeks).{" "}
+                    <Link href="/learn/tests" className="font-bold underline">Practice tests →</Link>
+                  </>
+                )}
+              </p>
             )
           ) : (
-            <p className="text-base">{child ? CHEER[r.level] : `${nickname} is likely to score ${r.low}–${r.high} out of ${EXAM_MARKS} today.`}</p>
-          )}
-
-          {r.needsTimedTest && (
-            <p className="rounded-2xl border border-[var(--brand-yellow)] p-3 text-sm">
-              <b>{child ? "One step to Exam ready:" : "One step left for Exam ready:"}</b> a full practice test in 1 hour, with no hints, scoring {readyMarks}/{EXAM_MARKS} or more.
-            </p>
+            <>
+              <p className="text-base">{child ? CHEER[r.level] : `${nickname} is likely to score about ${Math.round(r.predicted)} out of ${EXAM_MARKS} today.`}</p>
+              {/* The five checks a parent would make at home, each a tick or a gap. */}
+              <ul className="flex flex-col gap-1 text-sm">
+                {r.ticks.map((t) => (
+                  <li key={t.id} className="flex items-baseline gap-2">
+                    <span aria-hidden className={`grid h-5 w-5 shrink-0 translate-y-0.5 place-items-center rounded-full text-[11px] ${t.done ? "bg-black text-[var(--brand-yellow)]" : "border border-black/40"}`}>{t.done ? "✓" : ""}</span>
+                    <span className="flex-1">
+                      {t.label} <span className="text-muted">· {t.detail}</span>
+                    </span>
+                    <span className="sr-only">{t.done ? "done" : "not yet"}</span>
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
 
           {r.enoughEvidence && r.gains.length > 0 && (
@@ -79,8 +92,7 @@ export function ReadinessMeter({ r, audience, nickname }: { r: Readiness; audien
 
           {!child && (
             <p className="text-xs text-muted">
-              Based on {r.counts.tests} practice test{r.counts.tests === 1 ? "" : "s"}, {r.counts.worksheets} worksheet{r.counts.worksheets === 1 ? "" : "s"} and {r.counts.cardSets} card set{r.counts.cardSets === 1 ? "" : "s"} · {Math.round(r.counts.seenShare * 100)}% of the question bank seen
-              {r.mock ? ` · latest full test ${r.mock.pct}%` : ""}
+              Based on {r.papers} different paper{r.papers === 1 ? "" : "s"} written in the last 2 weeks (the latest try of each)
               {r.exam.actualMark != null ? ` · actual exam mark ${r.exam.actualMark}/${EXAM_MARKS}` : ""}
             </p>
           )}

@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Store } from "./types";
+import type { AttemptScore, Store } from "./types";
 
 // Supabase-backed store. Given a signed-in user's client, RLS limits every query to that parent's rows;
 // the explicit parent_id filters keep behaviour identical to the local store and to the service client.
@@ -78,11 +78,11 @@ export function supabaseStore(db: SupabaseClient): Store {
       rows(
         await db
           .from("question_attempts")
-          .select("question_id, type, skill, session_id, awarded, max, status, help_level, created_at")
+          .select("question_id, type, skill, session_id, awarded, max, status, help_level, created_at, reading_confirmed, near_miss:feedback->nearMiss")
           .eq("parent_id", parentId)
           .eq("child_id", childId)
           .order("created_at"),
-      ),
+      ).map((a) => ({ ...(a as AttemptScore & { nearMiss?: unknown }), nearMiss: Boolean((a as { nearMiss?: unknown }).nearMiss) })),
 
     createToken: async (t) => {
       check(await db.from("upload_tokens").insert(toRow(t)));

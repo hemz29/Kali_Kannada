@@ -105,8 +105,8 @@ export function buildFamily(spec: FamilySpec, now = Date.now()): FamilyRecords {
 
 const dateIn = (now: number, days: number) => new Date(now + days * DAY).toLocaleDateString("en-CA");
 
-// Arjun: three weeks of steady practice on the first two chapters, a mock test with hints, then a better one
-// without hints. Lands at "Nearly ready" with clear gains to point at.
+// Arjun: three weeks of steady practice on the first two chapters, four different papers in the last two weeks.
+// Lands at "Nearly ready" with clear gains to point at.
 export function arjun(now = Date.now()): FamilySpec {
   return {
     email: DEMO_PARENT_EMAIL,
@@ -121,6 +121,7 @@ export function arjun(now = Date.now()): FamilySpec {
       { day: 15, kind: "worksheet", worksheetId: "test-2", p: 0.6, hints: 0.2 },
       { day: 13, kind: "cards", lessonId: "panchatantra", p: 0.72 },
       { day: 11, kind: "worksheet", worksheetId: "nanna-desha-practice-a", p: 0.74, hints: 0.1 },
+      { day: 9, kind: "worksheet", worksheetId: "nanna-desha-practice-b", p: 0.78 },
       { day: 8, kind: "cards", lessonId: "nanna-desha", p: 0.8 },
       { day: 6, kind: "worksheet", worksheetId: "panchatantra-practice-b", p: 0.8 },
       { day: 3, kind: "worksheet", worksheetId: "test-3", p: 0.82, minutes: 52 },

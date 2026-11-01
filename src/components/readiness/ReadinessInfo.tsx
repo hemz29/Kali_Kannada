@@ -29,18 +29,19 @@ export function ReadinessInfo({ className = "" }: { className?: string }) {
             <h2 className="text-xl font-bold">How exam readiness is worked out</h2>
             <button type="button" onClick={() => box.current?.close()} aria-label="Close" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gray-100 text-lg">×</button>
           </div>
-          <p className="mt-3">It&apos;s an estimate of the exam mark, worked out from answers saved in Kali Kannada. No AI is used for it.</p>
+          <p className="mt-3">
+            We look at the practice papers your child wrote in the <b>last two weeks</b>: how many answers were right, added up the way the school paper is
+            marked. No AI is used for it.
+          </p>
           <ol className="mt-4 flex list-decimal flex-col gap-3 pl-5">
-            <li><b>The exam paper.</b> It follows the school&apos;s term paper: 40 marks, 1 hour. Each kind of question (meanings, opposites, one-sentence answers, the poem…) counts as many marks as it does on that paper. Only the chapters chosen in Parent view count.</li>
-            <li><b>How answers count.</b> Answers written on a worksheet count fully. Answers written with Hint 1 count for less, and with Hint 2 for much less. Quick tap cards count a little: picking an answer is easier than writing it, so cards alone can never show a skill as more than 75% known.</li>
-            <li><b>Recent practice counts most.</b> An answer from 3 weeks ago counts half as much as one from today, so the meter shows how ready the learner is now.</li>
-            <li><b>A cautious start.</b> Each skill starts as &quot;unknown&quot;, so one lucky answer can&apos;t show 100%. The exam can ask any word from a chapter, so a skill shown on only a few words counts for slightly less.</li>
-            <li><b>Full practice tests.</b> A full practice test from the last 3 weeks is the best single sign, so it makes up half of the estimate.</li>
-            <li><b>A range, not one number.</b> &quot;Likely 28–33 out of 40&quot; covers about 9 in 10 outcomes. It narrows as more practice is saved.</li>
+            <li><b>Which papers count.</b> Worksheets and practice tests on the exam&apos;s chapters, written in the last 2 weeks. If a paper was done twice, only the latest try counts. Quick tap cards are practice and don&apos;t change the number.</li>
+            <li><b>The likely mark.</b> For each part of the paper (meanings, opposites, one-sentence answers, the poem…) we take the share of answers that were right, and add the parts up by the marks the school paper gives them. An answer written with a hint counts half.</li>
+            <li><b>The range.</b> &quot;Likely 30–34&quot; is the likely mark ±2 once there are 4 or more papers, or ±4 with fewer.</li>
             <li>
-              <b>The levels.</b> Just starting (under 50%) · Getting there (50–69%) · Nearly ready (70–84%) · Exam ready (85% or more). Exam ready also needs a full practice test in the last 2 weeks: finished in time, with no hints, scoring 80% or more.
+              <b>Five checks</b>, like a parent would make at home: answers every question · careful spelling (2 or fewer slips a paper) · answers complete for the marks · finishes in time · 4 different papers in 2 weeks.
             </li>
-            <li><b>Not enough practice yet</b> shows until written answers cover at least 60% of the paper&apos;s marks. Usually one full practice test is enough.</li>
+            <li><b>The levels.</b> Just starting (under 50%) · Getting there (50–69%) · Nearly ready (70–84%) · Exam ready: about 34 out of 40 or more <i>and</i> all five checks done.</li>
+            <li><b>When it shows.</b> After a parent chooses the exam chapters in Parent view and the first practice paper is written.</li>
           </ol>
           <HandwritingNote className="mt-5" />
         </div>

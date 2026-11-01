@@ -120,7 +120,7 @@ export const localStore: Store = {
     read((db) =>
       db.attempts
         .filter((a) => a.childId === childId && a.parentId === parentId)
-        .map(({ questionId, type, skill, sessionId, awarded, max, status, helpLevel, createdAt }) => ({ questionId, type, skill, sessionId, awarded, max, status, helpLevel, createdAt })),
+        .map(({ questionId, type, skill, sessionId, awarded, max, status, helpLevel, createdAt, readingConfirmed, feedback }) => ({ questionId, type, skill, sessionId, awarded, max, status, helpLevel, createdAt, readingConfirmed, nearMiss: Boolean(feedback?.nearMiss) })),
     ),
 
   createToken: (t) =>

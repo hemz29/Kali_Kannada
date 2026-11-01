@@ -23,7 +23,7 @@ function attempt(s: PracticeSession, questionId: string, type: QuestionType, rig
   };
 }
 // A finished worksheet where the first `right` questions are correct (with an optional hint level on every answer).
-function sheet(worksheetId: string, ago: number, right: number, helpLevel = 0, minutes?: number) {
+function sheet(worksheetId: string, ago: number, right: number, helpLevel = 0, minutes?: number, blanks = 0) {
   const w = getWorksheet(worksheetId)!;
   const qs = w.sections.flatMap((x) => x.questions);
   const s = session(worksheetId, "worksheet", ago, {
@@ -31,7 +31,10 @@ function sheet(worksheetId: string, ago: number, right: number, helpLevel = 0, m
     help: helpLevel ? Object.fromEntries(qs.map((q) => [q.id, helpLevel])) : {},
     startedAt: daysAgo(ago + (minutes ?? 50) / 1440), completedAt: daysAgo(ago), writingDoneAt: daysAgo(ago),
   });
-  return { s, a: qs.map((q, i) => attempt(s, q.id, q.type, i < right, helpLevel)) };
+  const a = qs.map((q, i) => attempt(s, q.id, q.type, i < right, helpLevel));
+  // The last `blanks` answers were left empty.
+  for (const x of a.slice(a.length - blanks)) Object.assign(x, { status: "blank", text: "", awarded: 0 });
+  return { s, a };
 }
 // Every card question of one kind from a lesson, all answered right.
 function cards(lessonId: string, type: QuestionType, ago: number) {
@@ -51,60 +54,62 @@ describe("exam readiness", () => {
       expect(Object.values(examBlueprint(ids)).reduce((t, m) => t + m!, 0)).toBeCloseTo(EXAM_MARKS);
   });
 
-  it("says there isn't enough practice yet when nothing is written", () => {
-    const r = run();
+  it("shows no number until the exam chapters are chosen", () => {
+    const r = readiness(sheet("test-1", 1, 30).a, [sheet("test-1", 1, 30).s], { date: null, lessonIds: [] }, NOW);
+    expect(r.missing).toBe("chapters");
     expect(r.enoughEvidence).toBe(false);
+  });
+
+  it("shows no number from tap cards alone, and counts down to the exam date", () => {
+    const r = run(cards("panchatantra", "opposite", 1), cards("nanna-desha", "opposite", 2));
+    expect(r.missing).toBe("practice");
     expect(r.daysToGo).toBe(11);
-    const cardsOnly = run(cards("panchatantra", "opposite", 1), cards("panchatantra", "plural", 1));
-    expect(cardsOnly.enoughEvidence).toBe(false);
   });
 
-  it("never lets tap cards alone show a skill as more than 75% known", () => {
-    const sets = Array.from({ length: 12 }, (_, i) => cards("panchatantra", "opposite", i % 3));
-    const opposite = run(...sets).types.find((t) => t.type === "opposite")!;
-    expect(opposite.mastery).toBeLessThanOrEqual(0.75);
-    expect(opposite.mastery).toBeGreaterThan(0.5);
-  });
-
-  it("lands close to the real mark when the school paper is replayed", () => {
-    // Three recent full papers at 30/40 (the school's own paper among them).
-    const r = run(sheet("test-1", 2, 30), sheet("test-2", 5, 30), sheet("test-3", 8, 30));
+  it("gives the paper's own mark from one paper, with a ±4 range", () => {
+    const r = run(sheet("test-1", 1, 30));
     expect(r.enoughEvidence).toBe(true);
-    expect(r.predicted).toBeGreaterThan(24);
-    expect(r.predicted).toBeLessThan(33);
-    expect(r.low).toBeLessThanOrEqual(Math.round(r.predicted));
-    expect(r.high).toBeGreaterThanOrEqual(Math.round(r.predicted));
+    expect(Math.round(r.predicted)).toBe(30);
+    expect(r.high - r.low).toBe(8);
+    expect(r.ticks.find((t) => t.id === "papers")!.detail).toBe("1 of 4 done");
   });
 
-  it("gives Exam ready only after a recent timed paper with no hints at 80% or more", () => {
-    const strong = [sheet("test-2", 6, 40), sheet("test-3", 9, 40), sheet("panchatantra-practice-a", 3, 25), sheet("nanna-desha-practice-a", 4, 25)];
-    const ready = run(sheet("test-1", 1, 39), ...strong);
-    expect(ready.level).toBe("ready");
-    // The same strong practice, but the last full paper was a month ago: held at "Nearly ready".
-    const old = run(sheet("test-1", 30, 39), ...strong.map((x) => ({ ...x, s: { ...x.s, kind: "worksheet" as const, worksheetId: "panchatantra-practice-b" } })));
-    expect(old.level).not.toBe("ready");
-    // Recent and perfect, but over time: also held back.
-    const slow = run(sheet("test-1", 1, 39, 0, 90), ...strong.slice(2));
-    expect(slow.level).not.toBe("ready");
+  it("uses the latest try of a paper and ignores papers older than two weeks", () => {
+    const retry = run(sheet("test-1", 3, 20), sheet("test-1", 1, 36));
+    expect(Math.round(retry.predicted)).toBe(36);
+    expect(retry.papers).toBe(1);
+    expect(run(sheet("test-1", 15, 36)).missing).toBe("practice");
   });
 
-  it("counts answers written with hints for less", () => {
-    const own = run(sheet("test-1", 2, 36));
-    const hinted = run(sheet("test-1", 2, 36, 1));
-    expect(hinted.predicted).toBeLessThan(own.predicted);
+  it("counts answers written with Hint 1 as half", () => {
+    expect(Math.round(run(sheet("test-1", 1, 30, 1)).predicted)).toBe(15);
   });
 
-  it("lets older practice fade and narrows the range as answers add up", () => {
-    const recent = run(sheet("panchatantra-practice-a", 1, 25));
-    const old = run(sheet("panchatantra-practice-a", 60, 25));
-    const meaning = (r: typeof recent) => r.types.find((t) => t.type === "meaning_en")!.mastery;
-    expect(meaning(old)).toBeLessThan(meaning(recent));
-    const one = run(sheet("test-2", 2, 30));
-    const three = run(sheet("test-2", 2, 30), sheet("test-3", 3, 30), sheet("test-1", 4, 30));
-    expect(three.high - three.low).toBeLessThan(one.high - one.low);
+  it("gives Exam ready for 4 different strong papers with every check done", () => {
+    const r = run(sheet("test-1", 1, 38), sheet("test-2", 3, 38), sheet("test-3", 5, 38), sheet("panchatantra-practice-a", 7, 25, 0, 35));
+    expect(r.pct).toBeGreaterThanOrEqual(85);
+    expect(r.ticks.filter((t) => !t.done).map((t) => `${t.id}: ${t.detail}`)).toEqual([]);
+    expect(r.level).toBe("ready");
+    expect(r.high - r.low).toBe(4);
   });
 
-  it("points to the kinds of question with the most marks still to win", () => {
+  it("holds strong scores at Nearly ready while a check is missing", () => {
+    const late = run(sheet("test-1", 1, 38, 0, 75), sheet("test-2", 3, 38), sheet("test-3", 5, 38), sheet("panchatantra-practice-a", 7, 25, 0, 35));
+    expect(late.level).toBe("nearly");
+    expect(late.ticks.find((t) => t.id === "on_time")!.done).toBe(false);
+    const blank = run(sheet("test-1", 1, 38, 0, 50, 1), sheet("test-2", 3, 38), sheet("test-3", 5, 38), sheet("panchatantra-practice-a", 7, 25, 0, 35));
+    expect(blank.ticks.find((t) => t.id === "answered")!.detail).toBe("1 left blank");
+    expect(blank.level).toBe("nearly");
+  });
+
+  it("doesn't count the same paper four times as four papers", () => {
+    const r = run(sheet("test-1", 1, 38), sheet("test-1", 3, 38), sheet("test-1", 5, 38), sheet("test-1", 7, 38));
+    expect(r.papers).toBe(1);
+    expect(r.ticks.find((t) => t.id === "papers")!.done).toBe(false);
+    expect(r.level).not.toBe("ready");
+  });
+
+  it("points to the parts of the paper with the most marks still to win", () => {
     const r = run(sheet("test-1", 2, 20));
     expect(r.gains.length).toBeGreaterThan(0);
     expect(r.gains[0].marks).toBeGreaterThanOrEqual(r.gains.at(-1)!.marks);
@@ -113,16 +118,14 @@ describe("exam readiness", () => {
 });
 
 describe("demo family", () => {
-  it("Arjun's seeded history lands at Nearly ready with gains to point at", async () => {
+  it("Arjun's seeded history lands at Nearly ready, with four different recent papers", async () => {
     const { arjun, buildFamily } = await import("@/lib/demoData");
     const now = Date.parse("2026-11-20T10:00:00Z");
     const spec = arjun(now);
     const f = buildFamily(spec, now);
     const r = readiness(f.attempts.map((a) => ({ ...a, sessionId: a.sessionKey })), f.sessions.map((s) => ({ ...s, id: s.key, parentId: "p", childId: "c" })), spec.exam, now);
-    expect(r.enoughEvidence).toBe(true);
     expect(r.level).toBe("nearly");
-    expect(r.gains.length).toBeGreaterThan(0);
-    // The same seed always gives the same demo.
-    expect(buildFamily(spec, now)).toEqual(f);
+    expect(r.papers).toBeGreaterThanOrEqual(4);
+    expect(buildFamily(spec, now)).toEqual(f); // the same seed always gives the same demo
   });
 });

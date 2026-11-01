@@ -95,7 +95,7 @@ async function ReadinessTile({ parentId, childId, sessions, exam }: TileProps) {
   return (
     <span className="flex flex-col items-center">
       <ReadinessDial pct={ready.pct} level={ready.level} active={ready.enoughEvidence} size="sm" />
-      <span className="text-sm font-bold" style={ready.enoughEvidence ? { color: LEVEL_COLORS[ready.level].text } : undefined}>{ready.enoughEvidence ? levelLabel(ready.level) : "Not enough to show yet"}</span>
+      <span className="text-sm font-bold" style={ready.enoughEvidence ? { color: LEVEL_COLORS[ready.level].text } : undefined}>{ready.enoughEvidence ? levelLabel(ready.level) : ready.missing === "chapters" ? "Exam chapters needed" : "No recent practice paper"}</span>
       {ready.enoughEvidence && <span className="text-xs text-muted">Likely {ready.low}–{ready.high} out of {EXAM_MARKS}</span>}
     </span>
   );

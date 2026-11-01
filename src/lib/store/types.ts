@@ -68,7 +68,8 @@ export type QuestionAttempt = {
   createdAt: string;
 };
 
-export type AttemptScore = Pick<QuestionAttempt, "questionId" | "type" | "skill" | "sessionId" | "awarded" | "max" | "status" | "helpLevel" | "createdAt">;
+// nearMiss: marking found the answer one or two letters off the right one (a spelling slip).
+export type AttemptScore = Pick<QuestionAttempt, "questionId" | "type" | "skill" | "sessionId" | "awarded" | "max" | "status" | "helpLevel" | "createdAt" | "readingConfirmed"> & { nearMiss?: boolean };
 
 export type AttemptFeedback = {
   en: string;
