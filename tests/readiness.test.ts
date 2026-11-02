@@ -102,6 +102,22 @@ describe("exam readiness", () => {
     expect(blank.level).toBe("nearly");
   });
 
+  it("never rewards attempting everything when the answers are wrong", () => {
+    const r = run(sheet("test-1", 1, 0)); // every question attempted, all wrong
+    expect(r.pct).toBe(0);
+    expect(r.level).toBe("starting");
+    expect(r.ticks[0]).toMatchObject({ id: "correct", done: false });
+    for (const id of ["answered", "spelling", "complete", "on_time"]) expect(r.ticks.find((t) => t.id === id)).toMatchObject({ done: false, muted: true });
+    expect(r.ticks.find((t) => t.id === "papers")!.muted).toBeFalsy();
+  });
+
+  it("puts correct answers first and says how many are needed", () => {
+    const r = run(sheet("test-1", 1, 30));
+    expect(r.ticks.map((t) => t.id)).toEqual(["correct", "answered", "spelling", "complete", "on_time", "papers"]);
+    expect(r.ticks[0]).toMatchObject({ done: false, detail: "about 30 of 40 (34 needed)" });
+    expect(r.ticks.find((t) => t.id === "answered")!.done).toBe(true);
+  });
+
   it("doesn't count the same paper four times as four papers", () => {
     const r = run(sheet("test-1", 1, 38), sheet("test-1", 3, 38), sheet("test-1", 5, 38), sheet("test-1", 7, 38));
     expect(r.papers).toBe(1);

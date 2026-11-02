@@ -35,10 +35,11 @@ export function ReadinessInfo({ className = "" }: { className?: string }) {
           </p>
           <ol className="mt-4 flex list-decimal flex-col gap-3 pl-5">
             <li><b>Which papers count.</b> Worksheets and practice tests on the exam&apos;s chapters, written in the last 2 weeks. If a paper was done twice, only the latest try counts. Quick tap cards are practice and don&apos;t change the number.</li>
+            <li><b>Only correct answers earn marks.</b> A wrong answer counts the same as a blank one. The checks below never add marks; they only show what&apos;s left before Exam ready.</li>
             <li><b>The likely mark.</b> For each part of the paper (meanings, opposites, one-sentence answers, the poem…) we take the share of answers that were right, and add the parts up by the marks the school paper gives them. An answer written with a hint counts half.</li>
             <li><b>The range.</b> &quot;Likely 30–34&quot; is the likely mark ±2 once there are 4 or more papers, or ±4 with fewer.</li>
             <li>
-              <b>Five checks</b>, like a parent would make at home: answers every question · careful spelling (2 or fewer slips a paper) · answers complete for the marks · finishes in time · 4 different papers in 2 weeks.
+              <b>Checks</b>, like a parent would make at home, after correct answers: attempts every question · careful spelling (2 or fewer slips a paper) · answers complete for the marks · finishes in time · 4 different papers in 2 weeks. Until most answers are right, only the paper count is shown.
             </li>
             <li><b>The levels.</b> Just starting (under 50%) · Getting there (50–69%) · Nearly ready (70–84%) · Exam ready: about 34 out of 40 or more <i>and</i> all five checks done.</li>
             <li><b>When it shows.</b> After a parent chooses the exam chapters in Parent view and the first practice paper is written.</li>

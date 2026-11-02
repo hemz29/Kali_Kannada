@@ -63,8 +63,8 @@ export function ReadinessMeter({ r, audience, nickname }: { r: Readiness; audien
               <ul className="flex flex-col gap-1 text-sm">
                 {r.ticks.map((t) => (
                   <li key={t.id} className="flex items-baseline gap-2">
-                    <span aria-hidden className={`grid h-5 w-5 shrink-0 translate-y-0.5 place-items-center rounded-full text-[11px] ${t.done ? "bg-black text-[var(--brand-yellow)]" : "border border-black/40"}`}>{t.done ? "✓" : ""}</span>
-                    <span className="flex-1">
+                    <span aria-hidden className={`grid h-5 w-5 shrink-0 translate-y-0.5 place-items-center rounded-full text-[11px] ${t.done ? "bg-black text-[var(--brand-yellow)]" : t.muted ? "border border-dashed border-black/25 text-muted" : "border border-black/40"}`}>{t.done ? "✓" : t.muted ? "–" : ""}</span>
+                    <span className={`flex-1 ${t.muted ? "text-muted" : ""}`}>
                       {t.label} <span className="text-muted">· {t.detail}</span>
                     </span>
                     <span className="sr-only">{t.done ? "done" : "not yet"}</span>

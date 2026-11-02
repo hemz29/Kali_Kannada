@@ -31,7 +31,8 @@ const SHORT: Record<QuestionType, string> = {
   poem_line: "Poem lines by heart", poet_name: "The poet's name", fill_blank: "Fill in the blanks", rhyme: "Rhyming words",
 };
 
-export type Tick = { id: "answered" | "spelling" | "complete" | "on_time" | "papers"; label: string; done: boolean; detail: string };
+// muted: not counted yet (attempting everything only gets its tick once most answers are right).
+export type Tick = { id: "correct" | "answered" | "spelling" | "complete" | "on_time" | "papers"; label: string; done: boolean; detail: string; muted?: boolean };
 
 export type Readiness = {
   exam: ExamPlan;
@@ -113,7 +114,9 @@ export function readiness(attempts: AttemptScore[], sessions: PracticeSession[],
   const pct = Math.round((predicted / EXAM_MARKS) * 100);
   const spread = papers.length >= PAPERS_NEEDED ? 2 : 4;
 
-  // The five checks.
+  // Correct answers come first; then the five checks. Only right answers earn marks (a wrong answer counts the same as
+  // a blank), and the checks never add marks: they only show what's left before "Exam ready".
+  const readyMarks = Math.ceil((EXAM_MARKS * READY_PCT) / 100);
   const blanks = answers.filter((a) => a.status === "blank").length;
   const slips = answers.filter((a) => a.nearMiss && a.readingConfirmed).length;
   const sentences = answers.filter((a) => SENTENCE_TYPES.includes(a.type));
@@ -121,7 +124,8 @@ export function readiness(attempts: AttemptScore[], sessions: PracticeSession[],
   const late = papers.filter((s) => !onTime(s)).length;
   const n = papers.length;
   const ticks: Tick[] = [
-    { id: "answered", label: "Answers every question", done: n > 0 && blanks === 0, detail: blanks ? `${blanks} left blank` : "None left blank" },
+    { id: "correct", label: "Correct answers", done: pct >= READY_PCT, detail: `about ${Math.round(predicted)} of ${EXAM_MARKS} (${readyMarks} needed)` },
+    { id: "answered", label: "Attempts every question", done: n > 0 && blanks === 0, detail: blanks ? `${blanks} left blank` : "None left blank" },
     { id: "spelling", label: "Careful spelling", done: n > 0 && slips / n <= MAX_SLIPS, detail: `${slips} spelling slip${slips === 1 ? "" : "s"} in ${n} paper${n === 1 ? "" : "s"}` },
     {
       id: "complete",
@@ -132,6 +136,11 @@ export function readiness(attempts: AttemptScore[], sessions: PracticeSession[],
     { id: "on_time", label: "Finishes in time", done: n > 0 && late === 0, detail: late ? `${late} paper${late === 1 ? "" : "s"} took too long` : "Every paper on time" },
     { id: "papers", label: `${PAPERS_NEEDED} different papers in 2 weeks`, done: n >= PAPERS_NEEDED, detail: `${Math.min(n, PAPERS_NEEDED)} of ${PAPERS_NEEDED} done` },
   ];
+
+  // Until most answers are right, the habit checks aren't counted, so a low score never comes with reassuring ticks.
+  // The paper count is plain progress and always shows.
+  if (pct < 50)
+    for (const t of ticks) if (t.id !== "correct" && t.id !== "papers") Object.assign(t, { done: false, muted: true, detail: "counts once most answers are right" });
 
   let level: LevelId = [...LEVELS].reverse().find((l) => pct >= l.from)!.id;
   if (level === "ready" && !ticks.every((t) => t.done)) level = "nearly";
