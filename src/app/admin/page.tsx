@@ -11,6 +11,7 @@ import { activityMix, busyTimes, childSummaries, devices, funnel, median, repeat
 import { Bars, GrowthChart } from "@/components/admin/AdminCharts";
 import { loadFeedback } from "@/lib/server/feedback";
 import { INTENT, REPLACE, countBy, nps, npsBreakdown } from "@/lib/feedback";
+import { costSummary, inr, USD_TO_INR, usd } from "@/lib/aiCost";
 
 // "💻 75% · 📱 20% · tablet 5% (40 visits)" from the device noted on each visit.
 function deviceSplit(acts: { device: string | null }[]) {
@@ -43,6 +44,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<Qu
   const finished = worksheets.filter((s) => s.status === "graded");
   const hint2 = d.attempts.filter((a) => (a.helpLevel ?? 0) >= 2).length;
   const review = d.attempts.filter((a) => a.status === "review").length;
+  const cost = costSummary(d.aiCalls, new Set(finished.map((s) => s.id)));
   const tokens = d.aiCalls.reduce((t, a) => t + Number(a.inputTokens) + Number(a.outputTokens), 0);
   // Guests have no email: they're numbered by when they started, "Guest 1", "Guest 2"...
   const guestNo = new Map([...d.families].filter((f) => f.isGuest).sort((a, b) => (a.joinedAt ?? "").localeCompare(b.joinedAt ?? "")).map((f, i) => [f.parentId, i + 1]));
@@ -145,6 +147,34 @@ export default async function Admin({ searchParams }: { searchParams: Promise<Qu
           <Stat label="Waiting for review" value={review} note="answers" />
           <Stat label="AI calls" value={d.aiCalls.length} note={`${tokens.toLocaleString("en-IN")} tokens`} />
         </section>
+
+        <Card title="AI costs (Claude API)">
+          <p className="mt-1 text-sm text-muted">
+            From the tokens logged for every AI call (reading handwriting and marking sentence answers), at Anthropic&apos;s list prices.
+            Hosting (Vercel), the database (Supabase) and the read-aloud voices are on free plans and not included. Rupees at ₹{USD_TO_INR}/$.
+          </p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <Stat label="This month" value={usd(cost.thisMonth)} note={`${inr(cost.thisMonth)} · last 30 days ${usd(cost.last30)}`} />
+            <Stat label="Per marked worksheet" value={cost.perWorksheet === null ? "–" : usd(cost.perWorksheet)} note={cost.perWorksheet === null ? "after the first marked worksheet" : `${inr(cost.perWorksheet)} · all calls for it`} />
+            <Stat label="Per page read" value={cost.perPage === null ? "–" : usd(cost.perPage)} note={cost.perPage === null ? "after the first page" : `${inr(cost.perPage)} · handwriting reading`} />
+            <Stat label="All time" value={usd(cost.total)} note={`${cost.calls} calls${cost.failed ? ` · ${cost.failed} failed` : ""} · reading ${usd(cost.reading)}, marking ${usd(cost.marking)}`} />
+          </div>
+          <div className="mt-3 grid gap-3 lg:grid-cols-[2fr_1fr]">
+            <Bars title="AI spend per day" note="US dollars, last 30 days" data={cost.daily} x="day" bars={[{ key: "usd", name: "$" }]} decimals />
+            <div className="card p-4 text-sm">
+              <p className="font-bold">By model</p>
+              {cost.byModel.length ? (
+                <ul className="mt-2 flex flex-col gap-1">
+                  {cost.byModel.map(([m, v]) => (
+                    <li key={m} className="flex justify-between gap-3"><span>{m}</span><span className="font-medium">{usd(v)}</span></li>
+                  ))}
+                </ul>
+              ) : <p className="mt-2 text-muted">No AI calls yet.</p>}
+              {cost.unknownModels && <p className="mt-2 text-xs text-muted">Some calls used a model without a known price; they are counted at Claude Opus 5.5 prices.</p>}
+              <p className="mt-3 text-xs text-muted">The exact bill is in the Anthropic Console (Billing).</p>
+            </div>
+          </div>
+        </Card>
 
         <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           <GrowthChart data={weeks} />

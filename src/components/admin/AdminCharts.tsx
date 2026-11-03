@@ -37,13 +37,13 @@ export function GrowthChart({ data }: { data: Row[] }) {
   );
 }
 
-export function Bars({ title, note, data, x, bars, horizontal }: {
-  title: string; note?: string; data: Row[]; x: string; bars: { key: string; name: string }[]; horizontal?: boolean;
+export function Bars({ title, note, data, x, bars, horizontal, decimals }: {
+  title: string; note?: string; data: Row[]; x: string; bars: { key: string; name: string }[]; horizontal?: boolean; decimals?: boolean;
 }) {
   const colours = [INK, GREY];
   return (
     <Frame title={title} note={note}>
-      <BarChart data={data} layout={horizontal ? "vertical" : "horizontal"} margin={{ top: 5, right: 10, bottom: 0, left: horizontal ? 10 : -25 }}>
+      <BarChart data={data} layout={horizontal ? "vertical" : "horizontal"} margin={{ top: 5, right: 10, bottom: 0, left: horizontal ? 10 : decimals ? 0 : -25 }}>
         <CartesianGrid stroke="#eee" vertical={!!horizontal} horizontal={!horizontal} />
         {horizontal ? (
           <>
@@ -53,7 +53,7 @@ export function Bars({ title, note, data, x, bars, horizontal }: {
         ) : (
           <>
             <XAxis dataKey={x} {...axis} interval="preserveStartEnd" />
-            <YAxis allowDecimals={false} {...axis} />
+            <YAxis allowDecimals={Boolean(decimals)} {...axis} />
           </>
         )}
         <Tooltip cursor={{ fill: "#f5f5f5" }} />

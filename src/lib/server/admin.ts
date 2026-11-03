@@ -4,6 +4,7 @@ import { localDump } from "@/lib/store/local";
 import type { Child, PracticeSession, QuestionAttempt } from "@/lib/store/types";
 import { serviceClient } from "./context";
 import { isDemoUser } from "./demo";
+import type { AiCall } from "@/lib/aiCost";
 
 // The owner's admin page: every family's activity in one place. Only these emails can open it.
 const ADMINS = (process.env.ADMIN_EMAILS ?? "hemlata.v.29@gmail.com").split(",").map((e) => e.trim().toLowerCase());
@@ -20,7 +21,7 @@ export type AdminData = {
   sessions: PracticeSession[];
   attempts: Pick<QuestionAttempt, "sessionId" | "skill" | "helpLevel" | "status" | "awarded" | "max" | "method">[];
   activity: Activity[];
-  aiCalls: { parentId: string; ok: boolean; inputTokens: number; outputTokens: number }[];
+  aiCalls: AiCall[];
   activityMissing: boolean;
 };
 
@@ -41,7 +42,7 @@ async function loadAll(): Promise<AdminData & { demoParents: Set<string> }> {
       sessions: d.sessions,
       attempts: d.attempts,
       activity: d.activity.map((a) => ({ parentId: a.parentId, childId: a.childId ?? null, kind: a.kind, path: a.path ?? null, createdAt: a.createdAt, device: deviceIn(a.detail) })),
-      aiCalls: d.ai.map((a) => ({ parentId: a.parentId, ok: a.ok, inputTokens: a.inputTokens, outputTokens: a.outputTokens })),
+      aiCalls: d.ai.map((a) => ({ parentId: a.parentId, ok: a.ok, inputTokens: a.inputTokens, outputTokens: a.outputTokens, model: a.model, purpose: a.purpose, sessionId: a.sessionId, createdAt: a.at })),
       activityMissing: false,
     };
   }
@@ -56,7 +57,7 @@ async function loadAll(): Promise<AdminData & { demoParents: Set<string> }> {
     all("practice_sessions"),
     all("question_attempts", "session_id, skill, help_level, status, awarded, max, method"),
     all("activity_events", "parent_id, child_id, kind, path, created_at, detail"),
-    all("ai_usage_events", "parent_id, ok, input_tokens, output_tokens"),
+    all("ai_usage_events", "parent_id, ok, input_tokens, output_tokens, model, purpose, session_id, created_at"),
   ]);
   return {
     demoParents: new Set((users.data?.users ?? []).filter(isDemoUser).map((u) => u.id)),
