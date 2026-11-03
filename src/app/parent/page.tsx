@@ -2,8 +2,7 @@ import Link from "next/link";
 import { markDependsOnCheck } from "@/lib/grading/grade";
 import { redirect } from "next/navigation";
 import { getWorksheet, LESSONS, MARKING } from "@/content";
-import { isDemo, userStore } from "@/lib/server/context";
-import { lockNow, requireUnlockedParent } from "@/lib/server/parentLock";
+import { isDemo, requireParent, userStore } from "@/lib/server/context";
 import { saveExamPlan, withExam } from "@/lib/server/examPlan";
 import { recommendation, scoreTrend, skillRows } from "@/lib/dashboard";
 import { ScoreChart } from "@/components/parent/ScoreChart";
@@ -23,23 +22,16 @@ import { DemoMenu } from "@/components/DemoMenu";
 import { LineIcon } from "@/components/LineIcon";
 import { SaveProgressStrip } from "@/components/SaveProgressStrip";
 
-// "Lock": closes Parent view on this device until the PIN is entered again.
-async function lock() {
-  "use server";
-  await lockNow();
-  redirect("/learn");
-}
-
 async function deleteChild(formData: FormData) {
   "use server";
-  const parent = await requireUnlockedParent("/parent");
+  const parent = await requireParent();
   await (await userStore()).deleteChild(parent.id, String(formData.get("childId")));
   redirect("/parent");
 }
 
 async function renameChild(formData: FormData) {
   "use server";
-  const parent = await requireUnlockedParent("/parent");
+  const parent = await requireParent();
   const id = String(formData.get("childId"));
   const nickname = String(formData.get("nickname") ?? "").trim().slice(0, 40);
   if (nickname) await (await userStore()).updateChild(parent.id, id, { nickname });
@@ -49,7 +41,7 @@ async function renameChild(formData: FormData) {
 // The next exam for the readiness meter. The parent confirms the readiness note once, the first time.
 async function saveExam(formData: FormData) {
   "use server";
-  const parent = await requireUnlockedParent("/parent");
+  const parent = await requireParent();
   const store = await userStore();
   const id = String(formData.get("childId"));
   const child = await withExam(parent.id, await store.getChild(parent.id, id));
@@ -82,7 +74,7 @@ const STATUS = { not_started: "Not practised yet", in_progress: "Practised befor
 const fmt = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
 
 export default async function ParentDashboard({ searchParams }: { searchParams: Promise<{ child?: string; exam?: string }> }) {
-  const parent = await requireUnlockedParent("/parent");
+  const parent = await requireParent();
   const store = await userStore();
   const children = await store.listChildren(parent.id);
   if (!children.length) redirect("/profiles");
@@ -122,7 +114,6 @@ export default async function ParentDashboard({ searchParams }: { searchParams: 
               <Link key={c.id} href={`/parent?child=${c.id}`} className={`top-btn ${c.id === child.id ? "!border-black !bg-black !text-white" : ""}`}>{c.nickname}</Link>
             ))}
           {isAdmin(parent.email) && <Link href="/admin" className="top-btn">Admin</Link>}
-          <form action={lock}><button className="top-btn" title="Close Parent view until the PIN is entered again"><LineIcon name="lock" size={16} />Lock</button></form>
           <SignOutButton isGuest={parent.isGuest} />
         </span>
       </div>
@@ -137,7 +128,7 @@ export default async function ParentDashboard({ searchParams }: { searchParams: 
 
       {review.length > 0 && (
         <Link href={`/parent/session/${review[0].sessionId}`} className="rounded-2xl bg-warn-soft p-4 font-bold text-warn">
-          {review.length} answer(s) are waiting to be marked by a reviewer → open
+          {review.length} answer{review.length === 1 ? " is" : "s are"} waiting for you to mark → open
         </Link>
       )}
 

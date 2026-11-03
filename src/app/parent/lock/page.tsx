@@ -15,7 +15,7 @@ async function unlock(formData: FormData) {
   redirect(next);
 }
 
-// The grown-ups' door: Parent view (marks, exam settings, reports) opens with the parent PIN.
+// The grown-ups' door to marking answers (the rest of Parent view is open).
 export default async function ParentLock({ searchParams }: { searchParams: Promise<{ next?: string; wrong?: string }> }) {
   const parent = await requireParent();
   const { next, wrong } = await searchParams;
@@ -25,7 +25,7 @@ export default async function ParentLock({ searchParams }: { searchParams: Promi
         <span className="mx-auto"><LogoMark size={44} /></span>
         <h1 className="text-2xl">Parent PIN</h1>
         <p className="text-sm text-muted">
-          Parent view is for grown-ups: it&apos;s where marks are checked and the exam is set.
+          Marking answers is for grown-ups.
           {parent.email ? <> This account&apos;s parent email is <b className="text-ink">{parent.email}</b>.</> : null}
         </p>
         <input type="hidden" name="next" value={safeNext(next)} />
@@ -42,9 +42,9 @@ export default async function ParentLock({ searchParams }: { searchParams: Promi
           className="mx-auto h-14 w-40 rounded-xl border border-line bg-white text-center text-3xl tracking-[0.5em]"
         />
         {wrong && <p className="text-sm text-bad">That PIN isn&apos;t right. Please try again.</p>}
-        <button className="btn btn-primary">Open Parent view</button>
-        <p className="text-xs text-muted">You&apos;ll stay in for an hour, long enough to check a whole paper.</p>
-        <a href="/learn" className="text-sm text-muted underline">Back to learning</a>
+        <button className="btn btn-primary">Check the answers</button>
+        <p className="text-xs text-muted">One PIN covers the whole paper (you stay in for an hour).</p>
+        <a href="/parent" className="text-sm text-muted underline">Back to Parent view</a>
       </form>
     </main>
   );
