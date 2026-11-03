@@ -78,8 +78,8 @@ export function UploadPanel({ state, onOpen, refresh, inline = false }: { state:
   const reading = pages.some((p) => p.status === "received" || p.status === "reading");
 
   const fromComputer = (
-    <label className="btn btn-ghost cursor-pointer">
-      {busy === "pdf" ? "Preparing PDF…" : busy ? "Uploading…" : inline ? <><LineIcon name="laptop" size={20} /> From this computer (photo or PDF)</> : "Upload photos or a PDF from this computer"}
+    <label title="Photos or a PDF" className={`btn btn-ghost cursor-pointer ${inline ? "w-full whitespace-nowrap" : ""}`}>
+      {busy === "pdf" ? "Preparing PDF…" : busy ? "Uploading…" : inline ? <><LineIcon name="laptop" size={20} /> From this computer</> : "Upload photos or a PDF from this computer"}
       <input type="file" accept="image/jpeg,image/png,image/webp,application/pdf,.pdf" multiple className="sr-only" disabled={Boolean(busy)} onChange={(e) => uploadFiles(e.target.files)} />
     </label>
   );
@@ -110,10 +110,11 @@ export function UploadPanel({ state, onOpen, refresh, inline = false }: { state:
         <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
           <p className="min-w-0 leading-tight sm:mr-auto">
             <span className="block text-lg font-extrabold">Finished writing?</span>
-            <span className="text-sm text-muted">Send a photo of each page to be marked.</span>
+            <span className="text-sm text-muted">Send a photo of each page (or a PDF) to be marked.</span>
           </p>
-          <div className="flex flex-col gap-2 sm:flex-row">
-            {!qr && <button onClick={showQr} className="btn btn-primary"><LineIcon name="camera" size={20} /> From a phone</button>}
+          {/* Both buttons the same size, side by side (stacked on a phone). */}
+          <div className={`grid gap-2 ${qr ? "" : "sm:grid-cols-2"}`}>
+            {!qr && <button onClick={showQr} className="btn btn-primary w-full whitespace-nowrap"><LineIcon name="camera" size={20} /> From a phone</button>}
             {fromComputer}
           </div>
         </div>
