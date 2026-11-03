@@ -3,6 +3,7 @@ import { useState } from "react";
 import imageCompression from "browser-image-compression";
 import type { SessionState } from "./SessionView";
 import { LineIcon } from "@/components/LineIcon";
+import { isPdf, pdfErrorMessage } from "@/lib/pdfPages";
 
 const PAGE_STATUS: Record<string, string> = {
   received: "Received",
@@ -20,7 +21,7 @@ export async function compressPage(file: File) {
 export function UploadPanel({ state, onOpen, refresh, inline = false }: { state: SessionState; onOpen: () => void; refresh: () => void; inline?: boolean }) {
   const { session, pages } = state;
   const [qr, setQr] = useState<{ svg: string; url: string } | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<"" | "pdf" | "upload">("");
   const [error, setError] = useState("");
   const open = qr !== null || pages.length > 0;
 
@@ -39,11 +40,27 @@ export function UploadPanel({ state, onOpen, refresh, inline = false }: { state:
 
   async function uploadFiles(files: FileList | null) {
     if (!files?.length) return;
-    setBusy(true);
+    setBusy("upload");
     setError("");
     onOpen();
     finishWriting();
+    // A PDF (e.g. from a scanner) becomes one photo per page first, then every page uploads like a photo.
+    const photos: File[] = [];
     for (const f of Array.from(files)) {
+      if (!isPdf(f)) {
+        photos.push(f);
+        continue;
+      }
+      setBusy("pdf");
+      try {
+        const { pdfToPages } = await import("@/lib/pdfPages");
+        photos.push(...(await pdfToPages(f)));
+      } catch (err) {
+        setError(pdfErrorMessage(err));
+      }
+      setBusy("upload");
+    }
+    for (const f of photos) {
       try {
         const small = await compressPage(f);
         const body = new FormData();
@@ -51,10 +68,10 @@ export function UploadPanel({ state, onOpen, refresh, inline = false }: { state:
         const res = await fetch(`/api/sessions/${session.id}/pages`, { method: "POST", body });
         if (!res.ok) setError((await res.json()).error ?? "Upload failed.");
       } catch {
-        setError("That file isn't a photo we can read. Please choose a JPG or PNG photo.");
+        setError("That file isn't a photo or PDF we can read. Please choose a JPG or PNG photo, or a PDF.");
       }
     }
-    setBusy(false);
+    setBusy("");
     refresh();
   }
 
@@ -62,8 +79,8 @@ export function UploadPanel({ state, onOpen, refresh, inline = false }: { state:
 
   const fromComputer = (
     <label className="btn btn-ghost cursor-pointer">
-      {busy ? "Uploading…" : inline ? <><LineIcon name="laptop" size={20} /> From this computer</> : "Upload photos from this computer"}
-      <input type="file" accept="image/jpeg,image/png,image/webp" multiple className="sr-only" disabled={busy} onChange={(e) => uploadFiles(e.target.files)} />
+      {busy === "pdf" ? "Preparing PDF…" : busy ? "Uploading…" : inline ? <><LineIcon name="laptop" size={20} /> From this computer (photo or PDF)</> : "Upload photos or a PDF from this computer"}
+      <input type="file" accept="image/jpeg,image/png,image/webp,application/pdf,.pdf" multiple className="sr-only" disabled={Boolean(busy)} onChange={(e) => uploadFiles(e.target.files)} />
     </label>
   );
   const qrBlock = qr && (
