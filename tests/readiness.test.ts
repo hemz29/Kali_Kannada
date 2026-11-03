@@ -145,3 +145,15 @@ describe("demo family", () => {
     expect(buildFamily(spec, now)).toEqual(f); // the same seed always gives the same demo
   });
 });
+
+describe("worksheet timer", () => {
+  it("stops counting extra time 15 minutes after the time is up", async () => {
+    const { writingTime, writingEnd } = await import("@/lib/time");
+    const start = "2026-11-03T10:00:00Z";
+    const at = (min: number) => new Date(Date.parse(start) + min * 60_000).toISOString();
+    expect(writingTime(start, at(52), 60)!.text).toBe("Took 52 min of 60");
+    expect(writingTime(start, at(70), 60)!.text).toBe("Took 70 min (10 min over the 60)");
+    expect(writingTime(start, at(3085), 60)).toMatchObject({ took: 75, text: "Timer stopped 15 min after the 60" });
+    expect(writingEnd(start, null, 40, Date.parse(at(500)))).toBe(Date.parse(at(55)));
+  });
+});
