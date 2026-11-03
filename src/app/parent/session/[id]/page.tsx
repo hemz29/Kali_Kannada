@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getQuestion, getWorksheet, worksheetQuestionNumber } from "@/content";
-import { requireParent, userStore } from "@/lib/server/context";
+import { userStore } from "@/lib/server/context";
+import { requireUnlockedParent } from "@/lib/server/parentLock";
 import { sessionTotals } from "@/lib/server/pipeline";
 import { markDependsOnCheck, withHintPenalty } from "@/lib/grading/grade";
 import { logActivity } from "@/lib/server/activity";
@@ -14,7 +15,7 @@ import { HINT2_WRONG } from "@/lib/help";
 // A reviewer (in the pilot: the owner sitting with the family) sets the mark for an answer.
 async function setMark(formData: FormData) {
   "use server";
-  const parent = await requireParent();
+  const parent = await requireUnlockedParent("/parent");
   const store = await userStore();
   const sessionId = String(formData.get("sessionId"));
   const attemptId = String(formData.get("attemptId"));
@@ -38,7 +39,7 @@ const METHOD: Record<string, string> = { key: "Marked from the teacher's answer 
 const fmt = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
 
 export default async function SessionReview({ params }: { params: Promise<{ id: string }> }) {
-  const parent = await requireParent();
+  const parent = await requireUnlockedParent(`/parent/session/${(await params).id}`);
   const store = await userStore();
   const session = await store.getSession(parent.id, (await params).id);
   const ws = session && getWorksheet(session.worksheetId);

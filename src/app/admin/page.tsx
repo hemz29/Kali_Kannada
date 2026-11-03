@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLesson, getWorksheet } from "@/content";
 import { SKILLS, type Skill } from "@/content/schema";
-import { requireParent } from "@/lib/server/context";
+import { requireUnlockedParent } from "@/lib/server/parentLock";
 import { isAdmin, loadAdminData, type Family } from "@/lib/server/admin";
 import { writingTime } from "@/lib/time";
 import { Logo } from "@/components/shell/Logo";
@@ -28,7 +28,7 @@ const date = (iso?: string | null) => (iso ? new Date(iso).toLocaleString("en-IN
 type Query = { view?: string; kids?: string; families?: string; sessions?: string };
 
 export default async function Admin({ searchParams }: { searchParams: Promise<Query> }) {
-  const me = await requireParent();
+  const me = await requireUnlockedParent("/admin");
   if (!isAdmin(me.email)) notFound();
   // Real users unless Demo data is chosen. Feedback only ever comes from real parents.
   const query = await searchParams;
