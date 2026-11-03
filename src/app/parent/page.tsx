@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getWorksheet, LESSONS, MARKING } from "@/content";
 import { isDemo, userStore } from "@/lib/server/context";
 import { lockNow, requireUnlockedParent } from "@/lib/server/parentLock";
+import { saveExamPlan, withExam } from "@/lib/server/examPlan";
 import { recommendation, scoreTrend, skillRows } from "@/lib/dashboard";
 import { ScoreChart } from "@/components/parent/ScoreChart";
 import { DeviceStats } from "@/components/parent/DeviceStats";
@@ -51,7 +52,7 @@ async function saveExam(formData: FormData) {
   const parent = await requireUnlockedParent("/parent");
   const store = await userStore();
   const id = String(formData.get("childId"));
-  const child = await store.getChild(parent.id, id);
+  const child = await withExam(parent.id, await store.getChild(parent.id, id));
   if (!child) redirect("/parent");
   const back = (msg: string) => redirect(`/parent?child=${id}&exam=${msg}#exam`);
   const date = String(formData.get("date") ?? "");
@@ -62,7 +63,7 @@ async function saveExam(formData: FormData) {
   if (!acknowledged) back("ack");
   if (!lessonIds.length) back("chapters");
   try {
-    await store.updateChild(parent.id, id, { exam: { date: /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : null, lessonIds, actualMark: Number.isFinite(actualMark) ? actualMark : null, acknowledged } });
+    await saveExamPlan(store, parent.id, child, { date: /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : null, lessonIds, actualMark: Number.isFinite(actualMark) ? actualMark : null, acknowledged });
   } catch (err) {
     console.warn("exam not saved", err instanceof Error ? err.message : err);
     back("db");
@@ -74,7 +75,7 @@ const EXAM_MSG: Record<string, { text: string; good?: boolean }> = {
   saved: { text: "Exam saved. The meter now uses these chapters.", good: true },
   ack: { text: "Please tick that you've read the note about the meter and handwriting." },
   chapters: { text: "Choose at least one chapter." },
-  db: { text: "Couldn't save yet: the database needs a one-time update (supabase/migrations/0004_exam.sql). The meter uses all chapters until then." },
+  db: { text: "Couldn't save the exam just now. Please try again in a moment." },
 };
 
 const STATUS = { not_started: "Not practised yet", in_progress: "Practised before", recent: "Practised this week" };
@@ -86,7 +87,7 @@ export default async function ParentDashboard({ searchParams }: { searchParams: 
   const children = await store.listChildren(parent.id);
   if (!children.length) redirect("/profiles");
   const { child: childParam, exam: examMsg } = await searchParams;
-  const child = children.find((c) => c.id === childParam) ?? children[0];
+  const child = await withExam(parent.id, children.find((c) => c.id === childParam) ?? children[0]);
 
   const [sessions, attempts] = await Promise.all([store.listSessions(parent.id, child.id), store.listChildAttempts(parent.id, child.id)]);
   const worksheets = sessions.filter((s) => s.kind === "worksheet").sort((a, b) => b.startedAt.localeCompare(a.startedAt));

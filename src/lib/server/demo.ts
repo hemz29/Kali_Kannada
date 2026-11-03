@@ -51,8 +51,11 @@ async function writeFamily(db: SupabaseClient, spec: FamilySpec, now: number) {
   if (created.error || !created.data.user) throw new Error(`demo account ${spec.email}: ${created.error?.message}`);
   const r = rows(created.data.user.id, buildFamily(spec, now));
   await insert(db, "children", [r.child]);
-  // The exam column comes with migration 0004; without it the family simply has no exam set.
-  if (spec.exam) await db.from("children").update({ exam: spec.exam }).eq("id", r.childId);
+  // The exam goes in children.exam (migration 0004), or on the account until that update is run (see examPlan.ts).
+  if (spec.exam) {
+    const { error } = await db.from("children").update({ exam: spec.exam }).eq("id", r.childId);
+    if (error) await db.auth.admin.updateUserById(created.data.user.id, { app_metadata: { exams: { [r.childId]: spec.exam } } });
+  }
   await insert(db, "practice_sessions", r.sessions);
   await insert(db, "question_attempts", r.attempts);
   await insert(db, "activity_events", r.activity).catch(() => undefined); // activity table comes with migration 0002

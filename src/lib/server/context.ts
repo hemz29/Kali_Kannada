@@ -87,7 +87,8 @@ const CHILD_COOKIE = "sb_child";
 export const getActiveChild = cache(async (parentId: string): Promise<Child | null> => {
   const id = (await cookies()).get(CHILD_COOKIE)?.value;
   if (!id) return null;
-  return (await userStore()).getChild(parentId, id);
+  const { withExam } = await import("./examPlan"); // imported lazily: examPlan itself uses this file
+  return withExam(parentId, await (await userStore()).getChild(parentId, id));
 });
 
 export async function requireChild() {
