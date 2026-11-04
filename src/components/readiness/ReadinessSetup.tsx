@@ -11,14 +11,14 @@ function setupSteps(r: Readiness) {
 }
 
 // Under the dial once it shows: how to raise readiness, and the exam date (or a nudge to add it).
-export function ReadinessNext({ r, className = "" }: { r: Readiness; className?: string }) {
+export function ReadinessNext({ r, latest = null, className = "" }: { r: Readiness; latest?: number | null; className?: string }) {
   if (!r.enoughEvidence) return null;
   const left = Math.max(0, PAPERS_NEEDED - r.papers);
   return (
     <div className={`flex gap-2.5 rounded-2xl bg-accent-soft px-3 py-2.5 text-left text-sm ${className}`}>
       <span aria-hidden className="mt-0.5 shrink-0">{left ? "🎯" : "✓"}</span>
       <div className="flex flex-col gap-1">
-        <p>{left ? <><b>To raise readiness:</b> {left} more different paper{left === 1 ? "" : "s"} in 2 weeks</> : <><b>{PAPERS_NEEDED} papers done.</b> Keep practising to stay ready</>}</p>
+        <p>{left ? <><b>To raise readiness:</b> {left} more different paper{left === 1 ? "" : "s"} in 2 weeks{latest !== null ? <> · latest {latest}%</> : null}</> : <><b>{PAPERS_NEEDED} papers done</b>{latest !== null ? <> · latest {latest}%</> : null}</>}</p>
         {r.exam.date === null && <Link href="/parent#exam" className="text-xs text-muted underline hover:text-black">Add the exam date to see days left →</Link>}
       </div>
     </div>

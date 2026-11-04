@@ -74,11 +74,11 @@ export default async function LearnHome() {
               </Suspense>
             </Link>
             <Suspense fallback={null}>
-              <ReadinessTileSetup parentId={parent.id} childId={child.id} sessions={sessions} exam={child.exam} />
+              <ReadinessTileSetup parentId={parent.id} childId={child.id} sessions={sessions} exam={child.exam} latest={latestPct} />
             </Suspense>
-            <Link href="/learn/scores" className="group mt-auto flex items-center justify-between gap-2 border-t border-black/10 pt-3 text-xs text-muted hover:text-black">
-              <span>{done} worksheet{done === 1 ? "" : "s"} finished{latestPct === null ? "" : ` · latest ${latestPct}%`}</span>
-              <span aria-label="Open My scores" className="text-lg font-bold text-black transition group-hover:translate-x-1">→</span>
+            <Link href="/learn/tests" className="group mt-auto flex items-center justify-between gap-2 border-t border-black/10 pt-3 text-sm font-medium text-black">
+              <span>Keep practising to improve</span>
+              <span aria-hidden className="text-lg font-bold transition group-hover:translate-x-1">→</span>
             </Link>
           </div>
         </Group>
@@ -91,9 +91,9 @@ export default async function LearnHome() {
 const attemptScores = cache(async (parentId: string, childId: string) => (await userStore()).listAttemptScores(parentId, childId));
 type TileProps = { parentId: string; childId: string; sessions: PracticeSession[]; exam?: ExamPlan | null };
 
-async function ReadinessTileSetup({ parentId, childId, sessions, exam }: TileProps) {
+async function ReadinessTileSetup({ parentId, childId, sessions, exam, latest = null }: TileProps & { latest?: number | null }) {
   const r = readiness(await attemptScores(parentId, childId), sessions, exam);
-  return r.enoughEvidence ? <ReadinessNext r={r} /> : <ReadinessSetupLine r={r} />;
+  return r.enoughEvidence ? <ReadinessNext r={r} latest={latest} /> : <ReadinessSetupLine r={r} />;
 }
 
 async function ReadinessTile({ parentId, childId, sessions, exam }: TileProps) {
