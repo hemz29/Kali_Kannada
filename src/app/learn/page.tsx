@@ -63,7 +63,11 @@ export default async function LearnHome() {
             <Link href="/learn/scores" className="group flex flex-col gap-2">
               <span className="grid h-9 w-9 place-items-center rounded-full bg-[#f2f2f2] text-xl text-black"><LineIcon name="trophy" size={20} /></span>
               <span className="serif text-lg font-semibold text-ink">Exam readiness</span>
-              <span className="text-sm text-muted">{countdown(readiness([], [], child.exam)) ?? "How ready you are, and your scores"}</span>
+              {countdown(readiness([], [], child.exam)) ? (
+                <span className="self-start rounded-full bg-black px-3 py-1 text-sm font-medium text-[var(--brand-yellow)]">{countdown(readiness([], [], child.exam))}</span>
+              ) : (
+                <span className="text-sm text-muted">How ready you are, and your scores</span>
+              )}
               {/* The rest of the page doesn't wait for the answers the meter needs: the dial fills in when they arrive. */}
               <Suspense fallback={<TileDial />}>
                 <ReadinessTile parentId={parent.id} childId={child.id} sessions={sessions} exam={child.exam} />
