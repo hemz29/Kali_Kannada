@@ -9,7 +9,7 @@ import type { AttemptScore, ExamPlan, PracticeSession } from "@/lib/store/types"
 export const EXAM_MARKS = 40;
 const DAY = 864e5;
 export const RECENT_DAYS = 14; // papers written in the last two weeks count
-export const PAPERS_NEEDED = 4; // different papers in those two weeks, for "Exam ready"
+export const PAPERS_NEEDED = 3; // different papers in those two weeks, for "Exam ready"
 const READY_PCT = 85; // about 34 out of 40
 const MAX_SLIPS = 2; // spelling slips per paper, on average
 const COMPLETE_SHARE = 0.8; // sentence answers that got full marks for their points

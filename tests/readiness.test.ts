@@ -71,7 +71,7 @@ describe("exam readiness", () => {
     expect(r.enoughEvidence).toBe(true);
     expect(Math.round(r.predicted)).toBe(30);
     expect(r.high - r.low).toBe(8);
-    expect(r.ticks.find((t) => t.id === "papers")!.detail).toBe("1 of 4 done");
+    expect(r.ticks.find((t) => t.id === "papers")!.detail).toBe("1 of 3 done");
   });
 
   it("uses the latest try of a paper and ignores papers older than two weeks", () => {
@@ -90,6 +90,12 @@ describe("exam readiness", () => {
     expect(r.pct).toBeGreaterThanOrEqual(85);
     expect(r.ticks.filter((t) => !t.done).map((t) => `${t.id}: ${t.detail}`)).toEqual([]);
     expect(r.level).toBe("ready");
+    expect(r.high - r.low).toBe(4);
+  });
+
+  it("gives Exam ready from 3 different strong papers", () => {
+    const r = run(sheet("test-1", 1, 38), sheet("test-2", 3, 38), sheet("test-3", 5, 38));
+    expect(r.ticks.find((t) => t.id === "papers")).toMatchObject({ done: true, detail: "3 of 3 done" });
     expect(r.high - r.low).toBe(4);
   });
 

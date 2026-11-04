@@ -3,7 +3,7 @@ import { getLesson } from "@/content";
 import { EXAM_MARKS, levelLabel, type LevelId, type Readiness } from "@/lib/readiness";
 import { LEVEL_COLORS, ReadinessDial } from "./ReadinessDial";
 import { ReadinessInfo } from "./ReadinessInfo";
-import { ReadinessSetup } from "./ReadinessSetup";
+import { ReadinessNext, ReadinessSetup } from "./ReadinessSetup";
 
 const CHEER: Record<LevelId, string> = {
   starting: "Every bit of practice helps. Keep going!",
@@ -38,6 +38,7 @@ export function ReadinessMeter({ r, audience, nickname }: { r: Readiness; audien
           <ReadinessDial pct={r.pct} level={r.level} active={r.enoughEvidence} />
           <p className="-mt-1 text-lg font-bold" style={r.enoughEvidence ? { color: LEVEL_COLORS[r.level].text } : undefined}>{r.enoughEvidence ? levelLabel(r.level) : r.missing === "chapters" ? "Exam chapters needed" : "No recent practice paper"}</p>
           {r.enoughEvidence && <p className="text-sm text-muted">Likely {r.low}–{r.high} out of {EXAM_MARKS}</p>}
+          <ReadinessNext r={r} className="mt-1 text-center" />
         </div>
 
         <div className="flex flex-col gap-3">

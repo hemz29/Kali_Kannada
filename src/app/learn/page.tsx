@@ -10,7 +10,7 @@ import { LineIcon } from "@/components/LineIcon";
 import { EXAM_MARKS, levelLabel, readiness } from "@/lib/readiness";
 import { LEVEL_COLORS, ReadinessDial } from "@/components/readiness/ReadinessDial";
 import { countdown } from "@/components/readiness/ReadinessMeter";
-import { ReadinessSetupLine } from "@/components/readiness/ReadinessSetup";
+import { ReadinessNext, ReadinessSetupLine } from "@/components/readiness/ReadinessSetup";
 
 export default async function LearnHome() {
   const { parent, child } = await requireChild();
@@ -86,7 +86,8 @@ const attemptScores = cache(async (parentId: string, childId: string) => (await 
 type TileProps = { parentId: string; childId: string; sessions: PracticeSession[]; exam?: ExamPlan | null };
 
 async function ReadinessTileSetup({ parentId, childId, sessions, exam }: TileProps) {
-  return <ReadinessSetupLine r={readiness(await attemptScores(parentId, childId), sessions, exam)} />;
+  const r = readiness(await attemptScores(parentId, childId), sessions, exam);
+  return r.enoughEvidence ? <ReadinessNext r={r} className="text-center" /> : <ReadinessSetupLine r={r} />;
 }
 
 async function ReadinessTile({ parentId, childId, sessions, exam }: TileProps) {
