@@ -72,12 +72,14 @@ export default async function LearnHome() {
               <Suspense fallback={<TileDial />}>
                 <ReadinessTile parentId={parent.id} childId={child.id} sessions={sessions} exam={child.exam} />
               </Suspense>
-              <span className="text-sm">{done} worksheet{done === 1 ? "" : "s"} finished{latestPct === null ? "" : ` · latest ${latestPct}%`}</span>
             </Link>
             <Suspense fallback={null}>
               <ReadinessTileSetup parentId={parent.id} childId={child.id} sessions={sessions} exam={child.exam} />
             </Suspense>
-            <Link href="/learn/scores" aria-label="Open My scores" className="mt-auto text-lg font-bold text-black transition hover:translate-x-1">→</Link>
+            <Link href="/learn/scores" className="group mt-auto flex items-center justify-between gap-2 border-t border-black/10 pt-3 text-xs text-muted hover:text-black">
+              <span>{done} worksheet{done === 1 ? "" : "s"} finished{latestPct === null ? "" : ` · latest ${latestPct}%`}</span>
+              <span aria-label="Open My scores" className="text-lg font-bold text-black transition group-hover:translate-x-1">→</span>
+            </Link>
           </div>
         </Group>
       </div>
@@ -91,17 +93,17 @@ type TileProps = { parentId: string; childId: string; sessions: PracticeSession[
 
 async function ReadinessTileSetup({ parentId, childId, sessions, exam }: TileProps) {
   const r = readiness(await attemptScores(parentId, childId), sessions, exam);
-  return r.enoughEvidence ? <ReadinessNext r={r} className="text-center" /> : <ReadinessSetupLine r={r} />;
+  return r.enoughEvidence ? <ReadinessNext r={r} /> : <ReadinessSetupLine r={r} />;
 }
 
 async function ReadinessTile({ parentId, childId, sessions, exam }: TileProps) {
   const attempts = await attemptScores(parentId, childId);
   const ready = readiness(attempts, sessions, exam);
   return (
-    <span className="flex flex-col items-center">
+    <span className="my-2 flex flex-col items-center gap-1">
       <ReadinessDial pct={ready.pct} level={ready.level} active={ready.enoughEvidence} size="sm" />
       <span className="text-sm font-bold" style={ready.enoughEvidence ? { color: LEVEL_COLORS[ready.level].text } : undefined}>{ready.enoughEvidence ? levelLabel(ready.level) : ready.missing === "chapters" ? "Exam chapters needed" : "No recent practice paper"}</span>
-      {ready.enoughEvidence && <span className="text-xs text-muted">Likely {ready.low}–{ready.high} out of {EXAM_MARKS}</span>}
+      {ready.enoughEvidence && <span className="rounded-full bg-[#f2f2f2] px-2.5 py-0.5 text-xs text-ink">Likely {ready.low}–{ready.high} out of {EXAM_MARKS}</span>}
     </span>
   );
 }
@@ -109,7 +111,7 @@ async function ReadinessTile({ parentId, childId, sessions, exam }: TileProps) {
 // Same size as the filled tile, so nothing jumps when the dial arrives.
 function TileDial() {
   return (
-    <span className="flex flex-col items-center" aria-busy>
+    <span className="my-2 flex flex-col items-center gap-1" aria-busy>
       <ReadinessDial pct={0} active={false} size="sm" />
       <span className="text-sm text-muted">Working out…</span>
       <span className="text-xs">&nbsp;</span>

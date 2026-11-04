@@ -15,10 +15,13 @@ export function ReadinessNext({ r, className = "" }: { r: Readiness; className?:
   if (!r.enoughEvidence) return null;
   const left = Math.max(0, PAPERS_NEEDED - r.papers);
   return (
-    <p className={`text-xs text-muted ${className}`}>
-      {left ? <>To raise readiness: <b>{left} more different paper{left === 1 ? "" : "s"}</b> in 2 weeks</> : <>All papers done, keep practising</>}
-      {r.exam.date === null && <> · <Link href="/parent#exam" className="underline">Add the exam date to see days left →</Link></>}
-    </p>
+    <div className={`flex gap-2.5 rounded-2xl bg-accent-soft px-3 py-2.5 text-left text-sm ${className}`}>
+      <span aria-hidden className="mt-0.5 shrink-0">{left ? "🎯" : "✓"}</span>
+      <div className="flex flex-col gap-1">
+        <p>{left ? <><b>To raise readiness:</b> {left} more different paper{left === 1 ? "" : "s"} in 2 weeks</> : <><b>{PAPERS_NEEDED} papers done.</b> Keep practising to stay ready</>}</p>
+        {r.exam.date === null && <Link href="/parent#exam" className="text-xs text-muted underline hover:text-black">Add the exam date to see days left →</Link>}
+      </div>
+    </div>
   );
 }
 
