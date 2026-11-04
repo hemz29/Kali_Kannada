@@ -17,7 +17,11 @@ export function ReadinessNext({ r, className = "" }: { r: Readiness; className?:
   return (
     <p className={`text-xs text-muted ${className}`}>
       {left ? <>To raise readiness: <b>{left} more different paper{left === 1 ? "" : "s"}</b> in 2 weeks</> : <>All papers done, keep practising</>}
-      {r.daysToGo !== null && r.daysToGo >= 0 ? <> · exam in {r.daysToGo} day{r.daysToGo === 1 ? "" : "s"}</> : null}
+      {r.daysToGo !== null && r.daysToGo >= 0 ? (
+        <span className="ml-1.5 inline-block rounded-full bg-black px-2 py-0.5 font-medium text-[var(--brand-yellow)]">
+          {r.daysToGo === 0 ? "Exam today" : r.daysToGo === 1 ? "Exam tomorrow" : `Exam in ${r.daysToGo} days`}
+        </span>
+      ) : null}
       {r.exam.date === null && <> · <Link href="/parent#exam" className="underline">Add the exam date to see days left →</Link></>}
     </p>
   );
