@@ -59,12 +59,12 @@ export default async function LearnHome() {
         </div>
         <Group title="My progress" single>
           {/* Built like a ChoiceCard, but with the setup steps as their own links below the main one. */}
-          <div className="card flex flex-col gap-3 p-4 sm:p-5">
+          <div className="card relative flex flex-col gap-3 p-4 sm:p-5">
             <Link href="/learn/scores" className="group flex flex-col gap-2">
               <span className="grid h-9 w-9 place-items-center rounded-full bg-[#f2f2f2] text-xl text-black"><LineIcon name="trophy" size={20} /></span>
               <span className="serif text-lg font-semibold text-ink">Exam readiness</span>
               {countdown(readiness([], [], child.exam)) ? (
-                <span className="self-start rounded-full bg-black px-3 py-1 text-sm font-medium text-[var(--brand-yellow)]">{countdown(readiness([], [], child.exam))}</span>
+                <span className="absolute right-4 top-4 rounded-full bg-black px-2 py-0.5 text-[11px] font-medium text-[var(--brand-yellow)] sm:right-5 sm:top-5">{countdown(readiness([], [], child.exam))}</span>
               ) : (
                 <span className="text-sm text-muted">How ready you are, and your scores</span>
               )}
