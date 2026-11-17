@@ -6,8 +6,8 @@ import { transliterate } from "@/lib/transliterate";
 import { SCHOOL_WORKSHEET_ANSWERS } from "@/content/grade6/sampleAnswers";
 
 describe("content", () => {
-  it("loads three lessons with unique question ids", () => {
-    expect(LESSONS.map((l) => l.id)).toEqual(["panchatantra", "nanna-desha", "kugutide-pakshi"]);
+  it("loads four lessons with unique question ids", () => {
+    expect(LESSONS.map((l) => l.id)).toEqual(["panchatantra", "nanna-desha", "kugutide-pakshi", "ninnallu-adbhuta-shakti"]);
     const ids = LESSONS.flatMap((l) => l.exercises.flatMap((e) => e.questions.map((q) => q.id)));
     expect(new Set(ids).size).toBe(ids.length);
   });
@@ -23,7 +23,7 @@ describe("content", () => {
   });
 
   it("builds the practice tests on the school's Term 1 pattern: 40 marks, Section A 20 + Section B 20", () => {
-    const tests = WORKSHEETS.filter((w) => w.kind === "test");
+    const tests = WORKSHEETS.filter((w) => w.kind === "test" && w.id.startsWith("test-"));
     expect(tests.map((t) => t.id)).toEqual(["test-1", "test-2", "test-3"]);
     for (const t of tests) {
       expect(t.totalMarks, t.id).toBe(40);
@@ -51,7 +51,7 @@ describe("content", () => {
 
   it("makes every chapter practice 25 marks in 40 minutes, and keeps old worksheets for past attempts", () => {
     const practice = WORKSHEETS.filter((w) => w.kind === "practice");
-    expect(practice.length).toBe(6);
+    expect(practice.length).toBe(8);
     for (const w of practice) {
       expect(w.totalMarks, w.id).toBe(25);
       expect(w.minutes).toBe(40);
@@ -97,5 +97,40 @@ describe("transliteration", () => {
     expect(transliterate("ಗುಹೆ")).toBe("guhe");
     expect(transliterate("ಸಿಂಹ")).toBe("sinha");
     expect(transliterate("ದುಃಖ")).toBe("duhkha");
+  });
+});
+
+describe("unit test 2", () => {
+  it("covers every UT2 portion in the school's 25-mark format: 20 written (with ½ marks) + 5 oral, 40 minutes", async () => {
+    const { getWorksheet } = await import("@/content");
+    for (const id of ["ut2-a", "ut2-b"]) {
+      const w = getWorksheet(id)!;
+      expect(w.totalMarks, id).toBe(20);
+      expect(w.oralMarks).toBe(5);
+      expect(w.minutes).toBe(40);
+      expect(w.sections.map((s) => s.type)).toEqual([
+        "meaning_kn", "meaning_en", "en_to_kn", "synonym", "opposite", "gender", "plural", "split", "one_sentence", "who_said", "own_sentence", "number_name",
+      ]);
+      expect(w.sections.find((s) => s.type === "opposite")!.marksEach).toBe(0.5);
+      for (const q of w.sections.find((s) => s.type === "number_name")!.questions) expect(Number(q.promptEn)).toBeGreaterThan(50);
+    }
+  });
+
+  it("gives ½ mark per word question on the unit test and 1 elsewhere", async () => {
+    const { maxFor } = await import("@/lib/grading/grade");
+    const { getWorksheet } = await import("@/content");
+    const q = getWorksheet("ut2-a")!.sections.find((s) => s.type === "gender")!.questions[0];
+    expect(maxFor(q.id, "ut2-a")).toBe(0.5);
+    expect(maxFor(q.id)).toBe(1);
+  });
+
+  it("accepts any listed synonym, and knows number names up to 70", async () => {
+    const { getLesson, getQuestion } = await import("@/content");
+    const { gradeByKey } = await import("@/lib/grading/answerKey");
+    const q = getLesson("ninnallu-adbhuta-shakti")!.exercises.find((e) => e.type === "synonym")!.questions.find((x) => x.prompt === "ಸಮುದ್ರ")!;
+    expect(gradeByKey(q, "ಸಾಗರ").status).toBe("correct");
+    expect(gradeByKey(q, "ಕಡಲು").status).toBe("correct");
+    expect(getQuestion("numbers.70")!.answers[0]).toBe("ಎಪ್ಪತ್ತು");
+    expect(getQuestion("numbers.63")!.answers).toContain("ಅರವತ್ಮೂರು");
   });
 });

@@ -26,6 +26,7 @@ const TYPE_STYLE: Partial<Record<QuestionType, { icon: IconName; className: stri
   plural: { icon: "people", className: "bg-sky text-sky-ink" },
   gender: { icon: "family", className: "bg-lavender text-lavender-ink" },
   opposite: { icon: "swap", className: "bg-accent-soft text-accent" },
+  synonym: { icon: "book", className: "bg-good-soft text-good" },
   meaning_kn: { icon: "book", className: "bg-warn-soft text-warn" },
   rhyme: { icon: "music", className: "bg-good-soft text-good" },
 };

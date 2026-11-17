@@ -4,10 +4,11 @@ import type { Question } from "@/content/schema";
 
 // Printable worksheet in the school's paper format: Section A and B, bilingual instructions, marks per section
 // as "(1X3=3)", answer lines. Kali Kannada's logo sits centred at the top; the school's name and logo are never used.
-const WORD_TYPES = new Set(["meaning_kn", "meaning_en", "en_to_kn", "opposite", "gender", "plural", "split", "rhyme", "number_name"]);
+const WORD_TYPES = new Set(["meaning_kn", "meaning_en", "en_to_kn", "opposite", "synonym", "gender", "plural", "split", "rhyme", "number_name"]);
 const LINES: Record<string, number> = { one_sentence: 2, who_said: 1, own_sentence: 1, fill_blank: 0 };
 
-const fmt = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
+// ½ marks are printed as on the school paper: "(½x2=1)".
+const fmt = (n: number) => (Number.isInteger(n) ? String(n) : n === 0.5 ? "½" : n.toFixed(1));
 
 export function WorksheetPaper({ ws }: { ws: Worksheet }) {
   const partMarks = (p: "A" | "B") =>
@@ -22,7 +23,7 @@ export function WorksheetPaper({ ws }: { ws: Worksheet }) {
         <p className="text-sm">{ws.title.en}</p>
         <div className="mt-4 flex justify-between text-sm font-bold">
           <span>Duration: {ws.minutes === 60 ? "1 hour" : `${ws.minutes} minutes`}</span>
-          <span>Max. Marks: {fmt(ws.totalMarks)}</span>
+          <span>Max. Marks: {fmt(ws.totalMarks + (ws.oralMarks ?? 0))}</span>
         </div>
         {/* A line of its own, with long, tall writing lines, so a child can write their name and date clearly. */}
         <div className="mt-7 flex items-end gap-8 text-left text-sm font-bold">
@@ -33,7 +34,8 @@ export function WorksheetPaper({ ws }: { ws: Worksheet }) {
       <hr className="my-4 border-black" />
       {ws.sections.map((s, i) => {
         const part = sectionPart(s.type);
-        const heading = !ws.retired && part !== last;
+        // Unit tests have no Section A/B, as on the school paper.
+        const heading = !ws.retired && !ws.oralMarks && part !== last;
         last = part;
         return (
           <div key={s.type}>
@@ -46,6 +48,12 @@ export function WorksheetPaper({ ws }: { ws: Worksheet }) {
           </div>
         );
       })}
+      {ws.oralMarks ? (
+        <section className="ws-section mb-5 flex items-start justify-between gap-4 font-bold">
+          <p>{ws.sections.length + 1}. Oral test conducted in the class.</p>
+          <span className="text-sm">({ws.oralMarks})</span>
+        </section>
+      ) : null}
       <p className="mt-6 text-center text-xs text-gray-500">When you finish, take a clear photo of each page in good light.</p>
     </article>
   );

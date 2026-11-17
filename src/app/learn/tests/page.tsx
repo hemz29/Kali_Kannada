@@ -9,7 +9,7 @@ export default async function Tests() {
   const done = doneCounts(await (await userStore()).listSessions(parent.id, child.id));
   return (
     <div>
-      <PageHeader title="Practice tests" sub="The same pattern as the school's Term 1 paper: Section A and B, 40 marks, 1 hour. Test 1 is the actual Term 1 paper." />
+      <PageHeader title="Practice tests" sub="Unit test 2 practice follows the school's UT2 paper: 25 marks (20 written + 5 oral), 40 minutes. Practice tests 1–3 follow the Term 1 paper: 40 marks, 1 hour; Test 1 is the actual Term 1 paper." />
       <WorksheetList worksheets={TESTS} done={done} tone="sky" />
     </div>
   );

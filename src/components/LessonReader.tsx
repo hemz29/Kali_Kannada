@@ -83,7 +83,9 @@ export function LessonReader({ lesson }: { lesson: Lesson }) {
           <Toggle on={showTr} set={setShowTr} label="Sound it out" title="Kannada written in English letters" />
           <Toggle on={showEn} set={setShowEn} label="English meaning" />
           <p className="text-sm text-muted sm:ml-3">
-            Tap any word for its sound and meaning · <span className="text-good">checked by a Kannada teacher</span>
+            Tap any word for its sound and meaning
+            {/* Only the lessons in the teacher's review (26 Oct 2026); English lines for newer lessons aren't reviewed yet. */}
+            {lesson.number < 17 && <> · <span className="text-good">checked by a Kannada teacher</span></>}
           </p>
         </div>
       </div>

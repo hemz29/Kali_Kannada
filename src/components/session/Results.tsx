@@ -37,6 +37,7 @@ export function Results({ state, worksheetId }: { state: SessionState; worksheet
         <p className="text-lg font-bold text-muted">{pct >= 80 ? "Brilliant work!" : pct >= 50 ? "Well done!" : "Good effort – keep practising!"}</p>
         <h1 className="mt-1 text-5xl">{fmt(awarded)} / {fmt(max)}</h1>
         <p className="text-lg text-muted">{pct}% · {ws.title.en}</p>
+        {ws.oralMarks ? <p className="text-sm text-muted">Written marks · the oral test ({ws.oralMarks} marks) is given in class</p> : null}
         <div className="mt-4 flex flex-wrap justify-center gap-2">
           <span className="chip bg-accent-soft">Answered without hints: {onOwn} of {answered.length}</span>
           {hint2 > 0 && <span className="chip bg-peach text-peach-ink">Hint 2 used: {hint2} (half marks if picked right, 0 if wrong)</span>}

@@ -8,6 +8,7 @@ import { PracticeCards, type Card } from "@/components/PracticeCards";
 
 const CARD_TYPES: Partial<Record<QuestionType, string>> = {
   opposite: "Choose the opposite word",
+  synonym: "Choose the word with the same meaning",
   plural: "Choose the plural",
   gender: "Change the gender",
   meaning_kn: "Choose the meaning",

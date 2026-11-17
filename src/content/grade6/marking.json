@@ -16,6 +16,7 @@
     "one_sentence": 1,
     "own_sentence": 1,
     "poem_line": 1,
-    "poet_name": 1
+    "poet_name": 1,
+    "synonym": 1
   }
 }

@@ -43,7 +43,7 @@ export function WorksheetMode({ session, worksheetId, controls }: { session: Pra
           <p className="text-muted">{ws.title.en}</p>
           <ul className="mt-3 flex flex-wrap gap-2 text-sm">
             <li className="chip bg-accent-soft text-ink"><LineIcon name="pen" size={16} /> Write your answers on paper, with the same numbers as below</li>
-            <li className="chip bg-accent-soft text-ink">{ws.totalMarks} marks</li>
+            <li className="chip bg-accent-soft text-ink">{ws.oralMarks ? `${ws.totalMarks + ws.oralMarks} marks (${ws.totalMarks} written + ${ws.oralMarks} oral)` : `${ws.totalMarks} marks`}</li>
             <li className="chip bg-accent-soft text-ink">{ws.minutes} minutes</li>
           </ul>
         </div>

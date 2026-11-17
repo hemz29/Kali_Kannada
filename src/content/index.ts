@@ -2,10 +2,11 @@ import { LessonSchema, type Lesson, type Question, type QuestionType } from "./s
 import { panchatantra } from "./grade6/panchatantra";
 import { nannaDesha, nannaDeshaStanzas } from "./grade6/nannaDesha";
 import { kugutidePakshi } from "./grade6/kugutidePakshi";
+import { ninnalluAdbhutaShakti } from "./grade6/ninnalluAdbhutaShakti";
 import { numberQuestion, toKannadaDigits } from "./grade6/numbers";
 import marking from "./grade6/marking.json";
 
-export const LESSONS: Lesson[] = [panchatantra, nannaDesha, kugutidePakshi].map((l) => LessonSchema.parse(l));
+export const LESSONS: Lesson[] = [panchatantra, nannaDesha, kugutidePakshi, ninnalluAdbhutaShakti].map((l) => LessonSchema.parse(l));
 
 export const MARKING = marking as { version: string; label: string; perType: Record<QuestionType, number> };
 export const marksFor = (type: QuestionType) => MARKING.perType[type] ?? 1;
@@ -16,7 +17,7 @@ export function getLesson(id: string) {
 
 // Section order and instructions follow the school's Grade VI worksheet.
 export const SECTION_ORDER: QuestionType[] = [
-  "meaning_kn", "meaning_en", "en_to_kn", "opposite", "gender", "plural", "split", "rhyme",
+  "meaning_kn", "meaning_en", "en_to_kn", "synonym", "opposite", "gender", "plural", "split", "rhyme",
   "one_sentence", "who_said", "fill_blank", "own_sentence", "number_name", "poem_line", "poet_name",
 ];
 
@@ -25,6 +26,7 @@ export const SECTION_TEXT: Record<QuestionType, { kn: string; en: string }> = {
   meaning_en: { kn: "ಕೆಳಗಿನ ಪದಗಳಿಗೆ ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ ಅರ್ಥ ಬರೆಯಿರಿ.", en: "Write English meaning for the following words." },
   en_to_kn: { kn: "ಕೆಳಗಿನ ಪದಗಳಿಗೆ ಕನ್ನಡದಲ್ಲಿ ಅರ್ಥ ಬರೆಯಿರಿ.", en: "Write Kannada meaning for the following words." },
   opposite: { kn: "ಕೆಳಗಿನ ಪದಗಳಿಗೆ ವಿರುದ್ಧ ಪದ ಬರೆಯಿರಿ.", en: "Write opposite words for the following words." },
+  synonym: { kn: "ಕೆಳಗಿನ ಪದಗಳಿಗೆ ಸಮಾನಾರ್ಥಕ ಪದ ಬರೆಯಿರಿ.", en: "Write the synonyms for the following words." },
   gender: { kn: "ಕೆಳಗಿನ ಪದಗಳಿಗೆ ಲಿಂಗ ಬದಲಿಸಿ ಬರೆಯಿರಿ.", en: "Change gender for the following words." },
   plural: { kn: "ಕೆಳಗಿನ ಪದಗಳನ್ನು ಬಹುವಚನದಲ್ಲಿ ಬರೆಯಿರಿ.", en: "Write plural form for the following words." },
   split: { kn: "ಕೆಳಗಿನ ಪದಗಳನ್ನು ಬಿಡಿಸಿ ಬರೆಯಿರಿ.", en: "Split and write." },
@@ -42,7 +44,7 @@ export const SECTION_TEXT: Record<QuestionType, { kn: string; en: string }> = {
 const QUESTIONS = new Map<string, Question & { lessonId?: string }>();
 for (const l of LESSONS)
   for (const ex of l.exercises) for (const q of ex.questions) QUESTIONS.set(q.id, { ...q, lessonId: l.id });
-for (let n = 1; n <= 50; n++) {
+for (let n = 1; n <= 70; n++) {
   const q = numberQuestion(n);
   QUESTIONS.set(q.id, { ...q, answers: [...q.answers] });
 }
@@ -65,10 +67,12 @@ export type Worksheet = {
   retired?: boolean;
   // For poem completion: the line printed before the blanks, per stanza (retired worksheets only).
   poemCues?: string[];
+  // Marks for an oral test given in class (unit tests): printed on the paper, not marked in the app.
+  oralMarks?: number;
 };
 
 // Section A (words and grammar) comes before Section B (answers, sentences, numbers, poem), as on the school paper.
-export const SECTION_A: QuestionType[] = ["meaning_kn", "meaning_en", "en_to_kn", "opposite", "gender", "plural", "split", "rhyme"];
+export const SECTION_A: QuestionType[] = ["meaning_kn", "meaning_en", "en_to_kn", "synonym", "opposite", "gender", "plural", "split", "rhyme"];
 export const sectionPart = (type: QuestionType) => (SECTION_A.includes(type) ? "A" : "B");
 
 const minutesFor = (marks: number) => (marks >= 40 ? 60 : 40);
@@ -91,7 +95,10 @@ function build(
   lessonIds: string[],
   picks: Question[],
   extra: Partial<Worksheet> = {},
+  // Marks per item where this paper differs from the usual 1 mark (the unit test gives ½ for word questions).
+  marks: Partial<Record<QuestionType, number>> = {},
 ): Worksheet {
+  const each = (type: QuestionType) => marks[type] ?? marksFor(type);
   const sections = SECTION_ORDER.filter((t) => t !== "poet_name")
     .map((type) => ({
       type,
@@ -99,17 +106,18 @@ function build(
       ...(type === "poem_line" && picks.some((q) => q.type === "poet_name")
         ? { kn: "ಪದ್ಯವನ್ನು ಪೂರ್ಣಗೊಳಿಸಿ, ಕವಿಯ ಹೆಸರನ್ನು ಬರೆಯಿರಿ.", en: "Complete the following poem and write the name of the poet." }
         : {}),
-      marksEach: marksFor(type),
+      marksEach: each(type),
       questions: picks.filter((q) => q.type === type || (type === "poem_line" && q.type === "poet_name")),
     }))
     .filter((s) => s.questions.length);
-  const totalMarks = sections.reduce((t, s) => t + s.questions.reduce((m, q) => m + marksFor(q.type), 0), 0);
+  const totalMarks = sections.reduce((t, s) => t + s.questions.length * s.marksEach, 0);
   return { id, kind, title, lessonIds, sections, totalMarks, minutes: minutesFor(totalMarks), ...extra };
 }
 
 const P = "panchatantra";
 const N = "nanna-desha";
 const K = "kugutide-pakshi";
+const H = "ninnallu-adbhuta-shakti";
 
 const poemStanza = (n: number) => {
   const lines = nannaDeshaStanzas[n].map(([l]) => l);
@@ -194,6 +202,10 @@ const CHAPTER: Record<string, { quota: Partial<Record<QuestionType, number>>; ex
     quota: { meaning_kn: 2, meaning_en: 2, en_to_kn: 2, opposite: 3, plural: 3, fill_blank: 2, one_sentence: 4, who_said: 2, own_sentence: 3 },
     extra: (set) => numbers(...(set ? [44, 28] : [23, 41])),
   },
+  [H]: {
+    quota: { meaning_kn: 2, meaning_en: 2, en_to_kn: 2, synonym: 2, opposite: 2, gender: 2, plural: 2, split: 2, one_sentence: 3, who_said: 2, own_sentence: 2 },
+    extra: (set) => numbers(...(set ? [58, 66] : [53, 61])),
+  },
 };
 
 function chapterPractice(lesson: Lesson, set: 0 | 1): Worksheet {
@@ -226,7 +238,23 @@ function retiredChapter(lesson: Lesson, set: 0 | 1): Worksheet {
   return build(`${lesson.id}-${label.toLowerCase()}`, "practice", { kn: `${lesson.title.kn} – ಅಭ್ಯಾಸ ${label}`, en: `${lesson.title.en} – Practice ${label} (old)` }, [lesson.id], picks, { retired: true });
 }
 
-export const WORKSHEETS: Worksheet[] = [...tests, ...LESSONS.flatMap((l) => [chapterPractice(l, 0), chapterPractice(l, 1)])];
+// Unit Test 2 (Grade VI, 25 marks, 40 minutes): Lesson 17, grammar, number names 51–70, as on the school's UT2 paper.
+// Word questions are ½ mark each (the Kannada meaning is 1); 20 written marks plus 5 for an oral test in class.
+const UT_QUOTA = { meaning_kn: 2, meaning_en: 2, en_to_kn: 2, synonym: 2, opposite: 2, gender: 2, plural: 2, split: 2, own_sentence: 3, one_sentence: 4, who_said: 2 };
+const UT_MARKS: Partial<Record<QuestionType, number>> = { meaning_en: 0.5, en_to_kn: 0.5, synonym: 0.5, opposite: 0.5, gender: 0.5, plural: 0.5, split: 0.5 };
+const unitTest = (label: "A" | "B", nums: number[]) =>
+  build(
+    `ut2-${label.toLowerCase()}`,
+    "test",
+    { kn: `ಘಟಕ ಪರೀಕ್ಷೆ ೨ – ಅಭ್ಯಾಸ ${label} (ನಿನ್ನಲ್ಲೂ ಅದ್ಭುತ ಶಕ್ತಿಯಿದೆ)`, en: `Unit test 2 practice ${label} (Ninnallu Adbhuta Shaktiyide)` },
+    [H],
+    pick([H], UT_QUOTA, numbers(...nums)),
+    { minutes: 40, oralMarks: 5 },
+    UT_MARKS,
+  );
+const unitTests = [unitTest("A", [57, 64]), unitTest("B", [52, 69])];
+
+export const WORKSHEETS: Worksheet[] = [...unitTests, ...tests, ...LESSONS.flatMap((l) => [chapterPractice(l, 0), chapterPractice(l, 1)])];
 export const TESTS = WORKSHEETS.filter((w) => w.kind === "test");
 export const PRACTICE = WORKSHEETS.filter((w) => w.kind === "practice");
 

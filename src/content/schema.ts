@@ -39,6 +39,7 @@ export const QUESTION_TYPES = [
   "meaning_en", // write the English meaning of a Kannada word
   "en_to_kn", // write the Kannada word for an English word
   "opposite",
+  "synonym", // write a word with the same meaning (ಸಮಾನಾರ್ಥಕ ಪದ)
   "gender",
   "plural",
   "split",
@@ -59,6 +60,7 @@ export const KEY_GRADED: QuestionType[] = [
   "meaning_en",
   "en_to_kn",
   "opposite",
+  "synonym",
   "gender",
   "plural",
   "split",

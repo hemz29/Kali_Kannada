@@ -118,4 +118,8 @@ export function worksheetQuestionIds(worksheetId: string) {
   return ws ? ws.sections.flatMap((s) => s.questions.map((q) => q.id)) : [];
 }
 
-export const maxFor = (questionId: string) => marksFor(getQuestion(questionId)!.type);
+// A question's marks: the paper's own marks for its section (unit tests give ½), else the usual marks for its type.
+export function maxFor(questionId: string, worksheetId?: string) {
+  const section = worksheetId ? getWorksheet(worksheetId)?.sections.find((s) => s.questions.some((q) => q.id === questionId)) : undefined;
+  return section?.marksEach ?? marksFor(getQuestion(questionId)!.type);
+}

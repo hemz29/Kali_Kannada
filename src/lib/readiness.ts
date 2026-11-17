@@ -25,7 +25,7 @@ export type LevelId = (typeof LEVELS)[number]["id"];
 
 // Short names for each kind of question, for the "most marks to win" list.
 const SHORT: Record<QuestionType, string> = {
-  meaning_kn: "Kannada meanings", meaning_en: "English meanings", en_to_kn: "English words in Kannada", opposite: "Opposites",
+  meaning_kn: "Kannada meanings", meaning_en: "English meanings", en_to_kn: "English words in Kannada", opposite: "Opposites", synonym: "Synonyms",
   gender: "Changing gender", plural: "Plurals", split: "Splitting words", one_sentence: "One-sentence answers",
   who_said: "Who said to whom", own_sentence: "Making your own sentences", number_name: "Number names",
   poem_line: "Poem lines by heart", poet_name: "The poet's name", fill_blank: "Fill in the blanks", rhyme: "Rhyming words",
@@ -78,7 +78,7 @@ const onTime = (s: PracticeSession) => {
 function practiceHref(type: QuestionType, lessonIds: string[]) {
   if (type === "number_name") return "/learn/numbers";
   if (type === "poem_line" || type === "poet_name" || type === "rhyme") return "/learn/lesson/nanna-desha";
-  if (["meaning_kn", "opposite", "gender", "plural", "split"].includes(type)) return `/learn/cards/${lessonIds[0] ?? "panchatantra"}`;
+  if (["meaning_kn", "opposite", "synonym", "gender", "plural", "split"].includes(type)) return `/learn/cards/${lessonIds[0] ?? "panchatantra"}`;
   return "/learn/writing";
 }
 

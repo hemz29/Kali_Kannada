@@ -70,6 +70,9 @@ const HINT1: Record<QuestionType, (q: Question) => Hint1> = {
         : `It starts with “${starts(answer)}”.`;
     return { lines: [`${say(q.prompt)} means “${enOf(q.prompt) ?? "?"}”.`, "Think of the word that means the opposite.", tip] };
   },
+  synonym: (q) => ({
+    lines: [`${say(q.prompt)} means “${q.model?.en ?? enOf(q.prompt) ?? "?"}”.`, "Write another Kannada word that means the same.", `One answer starts with “${starts(q.answers[0])}”.`],
+  }),
   gender: (q) => ({
     lines: [`${say(q.prompt)} means “${enOf(q.prompt) ?? "?"}”.`, "Write the word for the other gender (male ↔ female).", `It starts with “${starts(q.answers[0], aksharas(q.answers[0]).length > 2 ? 2 : 1)}”.`],
   }),

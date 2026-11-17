@@ -14,7 +14,7 @@ export default async function WorksheetIntro({ params, searchParams }: { params:
     <div className="mx-auto flex max-w-3xl flex-col gap-5">
       <Link href={ws.kind === "test" ? "/learn/tests" : "/learn/writing"} className="text-sm font-bold text-accent">← Back</Link>
       <div className="card bg-white p-6">
-        <p className="text-sm font-bold text-muted">{ws.kind === "test" ? "Practice test" : "Chapter practice"} · {ws.totalMarks} marks · {ws.minutes === 60 ? "1 hour" : `${ws.minutes} minutes`}</p>
+        <p className="text-sm font-bold text-muted">{ws.kind === "test" ? "Practice test" : "Chapter practice"} · {ws.oralMarks ? `${ws.totalMarks + ws.oralMarks} marks (${ws.totalMarks} written + ${ws.oralMarks} oral)` : `${ws.totalMarks} marks`} · {ws.minutes === 60 ? "1 hour" : `${ws.minutes} minutes`}</p>
         <h1 className="mt-1 text-3xl">{ws.title.en}</h1>
         <p className="text-xl text-muted"><KnText text={ws.title.kn} /></p>
         <ol className="mt-5 grid gap-2 sm:grid-cols-2">

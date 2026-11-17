@@ -103,7 +103,7 @@ export async function readPage(store: Store, session: PracticeSession, page: Pag
       misreadFlagged: false,
       helpLevel: session.help[qid] ?? 0,
       awarded: null,
-      max: maxFor(qid),
+      max: maxFor(qid, session.worksheetId),
       status: null,
       method: null,
       feedback: null,
@@ -137,7 +137,7 @@ export async function gradeSession(store: Store, session: PracticeSession) {
     existing.set(q.id, {
       sessionId: session.id, parentId, childId: session.childId, questionId: q.id, type: q.type, skill: q.skill,
       pageId: null, region: null, text: "", confidence: "high", uncertainWords: [], readingConfirmed: true,
-      misreadFlagged: false, helpLevel: session.help[q.id] ?? 0, awarded: null, max: maxFor(q.id),
+      misreadFlagged: false, helpLevel: session.help[q.id] ?? 0, awarded: null, max: maxFor(q.id, session.worksheetId),
       status: null, method: null, feedback: null, markingVersion: MARKING.version,
     });
   }

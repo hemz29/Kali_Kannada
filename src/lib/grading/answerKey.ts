@@ -11,7 +11,7 @@ export type KeyResult = {
 };
 
 // Types where a different but valid synonym is common, so a non-match goes to the AI check.
-const SYNONYM_TYPES = new Set(["meaning_kn", "meaning_en", "en_to_kn"]);
+const SYNONYM_TYPES = new Set(["meaning_kn", "meaning_en", "en_to_kn", "synonym"]);
 
 function closest(answer: string, keys: string[]) {
   const a = graphemes(compactKn(answer));
