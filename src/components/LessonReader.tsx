@@ -35,6 +35,8 @@ export function LessonReader({ lesson }: { lesson: Lesson }) {
     if (!playing) return a.pause();
     stopOtherAudio(player);
     a.src = `/audio/${voice}/${queue[0]}.mp3`;
+    // Fetch the next sentence while this one plays, so reading on has no pause.
+    if (queue[1]) new Audio(`/audio/${voice}/${queue[1]}.mp3`).preload = "auto";
     a.play().catch(() => setQueue([]));
     stats.listened(lesson.id);
   }, [queue[0], voice]); // eslint-disable-line react-hooks/exhaustive-deps

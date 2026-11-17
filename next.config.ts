@@ -11,6 +11,12 @@ const nextConfig: NextConfig = {
         source: "/worksheets/:file*",
         headers: [{ key: "Cache-Control", value: `public, max-age=${FOURTEEN_DAYS}, s-maxage=${FOURTEEN_DAYS}, stale-while-revalidate=86400` }],
       },
+      // Read-aloud clips: kept by browsers and the CDN so they start at once after the first play.
+      // A clip whose text changes gets a new file name (the sentence id), so nobody hears a stale one.
+      {
+        source: "/audio/:file*",
+        headers: [{ key: "Cache-Control", value: `public, max-age=${FOURTEEN_DAYS}, s-maxage=${FOURTEEN_DAYS}, stale-while-revalidate=86400` }],
+      },
     ];
   },
 };
