@@ -2,18 +2,18 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { guestSignIn, signOut } from "@/lib/server/signOut";
 import { LineIcon } from "@/components/LineIcon";
-import { GUEST_DAYS, GUEST_SINCE_COOKIE, guestDaysLeft } from "@/lib/guestPass";
+import { GUEST_HOURS, GUEST_SINCE_COOKIE, guestHoursLeft, timeLeftText } from "@/lib/guestPass";
 
-// Signed-up parents get Sign out. Guests get a quiet "Guest" pill whose soft fill shows how much of the 7-day pass is
+// Signed-up parents get Sign out. Guests get a quiet "Guest" pill whose soft fill shows how much of the 48-hour pass is
 // left (tap to save), and a plain Sign in for anyone who already has an account.
 export async function SignOutButton({ isGuest }: { isGuest: boolean }) {
   if (isGuest) {
-    const left = guestDaysLeft((await cookies()).get(GUEST_SINCE_COOKIE)?.value);
-    const hint = `Guest · ${left} day${left === 1 ? "" : "s"} left. Tap to save your progress.`;
+    const left = guestHoursLeft((await cookies()).get(GUEST_SINCE_COOKIE)?.value);
+    const hint = `Guest · ${timeLeftText(left)} left. Tap to register and keep your progress.`;
     return (
       <>
         <Link href="/save" title={hint} aria-label={hint} className="top-btn">
-          <span aria-hidden className={`guest-fill ${left <= 2 ? "low" : ""}`} style={{ "--fill": `${Math.round((left / GUEST_DAYS) * 100)}%` } as React.CSSProperties} />
+          <span aria-hidden className={`guest-fill ${left <= 12 ? "low" : ""}`} style={{ "--fill": `${Math.round((left / GUEST_HOURS) * 100)}%` } as React.CSSProperties} />
           <span className="relative flex items-center gap-1.5"><LineIcon name="lock" size={16} />Guest</span>
         </Link>
         <form action={guestSignIn}>

@@ -5,7 +5,7 @@ import { requireParent, supabaseServer, userStore } from "@/lib/server/context";
 import { googleEnabled } from "@/lib/server/google";
 import { GoogleLogo } from "@/components/GoogleLogo";
 import { LogoMark } from "@/components/shell/Logo";
-import { GUEST_DAYS } from "@/lib/guestPass";
+import { GUEST_HOURS, PRIVACY_PROMISE } from "@/lib/guestPass";
 
 export const dynamic = "force-dynamic";
 
@@ -41,7 +41,10 @@ export default async function Save({ searchParams }: { searchParams: Promise<{ s
         <LogoMark size={44} />
         <h1 className="text-2xl">Save your child&apos;s progress</h1>
         <p className="text-muted">
-          Add your email or Google account within {GUEST_DAYS} days of starting to keep {who} progress and come back on any device. Everything practised so far stays, and we only use your email to sign you in.
+          Guest access lasts {GUEST_HOURS} hours. Register with your email or Google account to keep {who} progress, see the detailed parent reports and exam readiness, and come back on any device. Everything practised so far stays.
+        </p>
+        <p className="rounded-xl bg-good-soft p-3 text-sm">
+          🔒 {PRIVACY_PROMISE} Nothing else, and it&apos;s never shared.
         </p>
         {sent ? (
           <p className="rounded-xl bg-accent-soft p-4">

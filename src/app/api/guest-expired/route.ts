@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { getParent, isDemo, serviceClient, serviceStore, supabaseServer } from "@/lib/server/context";
 import { GUEST_SINCE_COOKIE, guestExpired } from "@/lib/guestPass";
 
-// A guest whose 7-day pass has run out (sent here by the middleware): their unsaved practice is deleted (children,
+// A guest whose 48-hour pass has run out (sent here by the middleware): their unsaved practice is deleted (children,
 // answers, photos, then the guest account itself), they're signed out, and /trial-ended explains what happened.
 export async function GET(req: Request) {
   const jar = await cookies();

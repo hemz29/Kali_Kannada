@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
+import { GUEST_HOURS, PRIVACY_PROMISE } from "@/lib/guestPass";
 
 export const SAVE_DISMISSED_COOKIE = "kk_save_dismissed";
 
@@ -14,7 +15,7 @@ export function SaveProgressStrip({ name, dismissible = true }: { name?: string;
       <Link href="/save" className="flex flex-1 items-center gap-3">
         <span className="flex-1">
           <b className="font-semibold text-[var(--brand-yellow)]">Save {name ? `${name}'s` : "your"} progress</b>
-          <span className="block text-gray-300">Guest practice is kept for 7 days. Add your email to keep it and come back on any device.</span>
+          <span className="block text-gray-300">Guest access lasts {GUEST_HOURS} hours. Register free to keep practising, see detailed progress and come back on any device. {PRIVACY_PROMISE}</span>
         </span>
         <span aria-hidden>→</span>
       </Link>

@@ -25,7 +25,7 @@ function StartButton({ className = "" }: { className?: string }) {
   return (
     <form action={startFree}>
       <button className={`min-h-14 rounded-full bg-[var(--brand-yellow)] px-7 text-base font-semibold text-black transition hover:brightness-95 ${className}`}>
-        Start free – no sign-up →
+        Try free for 48 hours – no sign-up →
       </button>
     </form>
   );

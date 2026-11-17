@@ -31,7 +31,7 @@ export async function middleware(request: NextRequest) {
   // Refreshes the sign-in when needed; getClaims() verifies the token locally where it can, which is faster than getUser().
   const { data } = await supabase.auth.getClaims();
 
-  // The 7-day guest pass: the clock starts the first time a guest is seen in this browser; once it has run out,
+  // The 48-hour guest pass: the clock starts the first time a guest is seen in this browser; once it has run out,
   // the guest goes to the route that clears their unsaved data, signs them out and shows /trial-ended.
   const path = request.nextUrl.pathname;
   if (data?.claims?.is_anonymous) {

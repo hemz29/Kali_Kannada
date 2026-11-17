@@ -239,7 +239,7 @@ h2,
 .top-btn:hover {
   border-color: #000;
 }
-/* The guest pass: a soft fill behind "Guest" that shows how much of the 7 days is left, sliding in on load. */
+/* The guest pass: a soft fill behind "Guest" that shows how much of the 48 hours is left, sliding in on load. */
 .guest-fill {
   position: absolute;
   inset: 0 auto 0 0;
